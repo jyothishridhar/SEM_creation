@@ -1,7 +1,5 @@
-import streamlit as st
 import pandas as pd
 import os
-import base64
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -14,20 +12,18 @@ import time
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from requests.exceptions import Timeout
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
-from io import StringIO
 import io
-from openpyxl.utils.dataframe import dataframe_to_rows
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
 
 def generate_variants(property_name, max_variants=5):
+    print("Property Name:", property_name)
     if property_name is None:
         return []
 
@@ -47,61 +43,56 @@ def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
     options.add_argument("start-maximized")
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    
+    for attempt in range(retries):
+        try:
+            driver.get(url)
+            WebDriverWait(driver, wait_time).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'p'))
+            )
+            page_source = driver.page_source
+            soup = BeautifulSoup(page_source, 'html.parser')
+            p_tags = soup.find_all('p')
+            
+            first_two_paragraphs_text = ''
+            paragraph_count = 0
 
-    try:
-        for attempt in range(retries):
-            try:
-                driver.get(url)
-                WebDriverWait(driver, wait_time).until(
-                    EC.presence_of_element_located((By.TAG_NAME, 'p'))
-                )
-                page_source = driver.page_source
-                soup = BeautifulSoup(page_source, 'html.parser')
-                p_tags = soup.find_all('p')
-
-                first_two_paragraphs_text = ''
-                paragraph_count = 0
-
-                for p in p_tags:
-                    paragraph = p.text.strip()
-                    if len(paragraph) > 100:
-                        first_two_paragraphs_text += paragraph + ' '
-                        paragraph_count += 1
-                        if paragraph_count == 3:
-                            break
-
-                if paragraph_count < 2:
-                    raise ValueError("Less than two proper paragraphs found.")
-
-                sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', first_two_paragraphs_text)
-
-                while len(sentences) < 4:
-                    sentences.append('')
-
-                return sentences[0] + ' ' + sentences[1], sentences[2] + ' ' + sentences[3]
-
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed with error: {e}")
-                time.sleep(5)
-
-        return None, None
-
-    finally:
-        driver.quit()
+            for p in p_tags:
+                paragraph = p.text.strip()
+                if len(paragraph) > 100:
+                    first_two_paragraphs_text += paragraph + ' '
+                    paragraph_count += 1
+                    if paragraph_count == 2:
+                        break
+            
+            if paragraph_count < 2:
+                raise ValueError("Less than two proper paragraphs found.")
+            
+            sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', first_two_paragraphs_text)
+            while len(sentences) < 4:
+                sentences.append('')
+            
+            return sentences[0] + ' ' + sentences[1], sentences[2] + ' ' + sentences[3]
+        
+        except Exception as e:
+            print(f"Attempt {attempt + 1} failed with error: {e}")
+            time.sleep(5)
+            
+    driver.quit()
+    print("All attempts failed. Unable to scrape the paragraphs.")
+    return None, None
 
 def extract_header_from_path(output_file):
     try:
         filename = os.path.basename(output_file)
         filename_without_extension = os.path.splitext(filename)[0]
         header_text = filename_without_extension.replace('_', ' ')
-
         return header_text.strip()
-
     except Exception as e:
         print("An error occurred while extracting header from file path:", e)
         return None
 
-def scrape_site_links(url, max_links=8):
+def scrape_site_links(url, max_links=10):
     try:
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
@@ -123,7 +114,7 @@ def scrape_site_links(url, max_links=8):
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
             "Premises", "Establishment", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", 
-            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers"
+            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers", "Similar Hotels", "Amenities"
         ]
 
         relevant_meetings_words = ["Meetings & Events", "Groups & Meetings", "Meetings", "Events", "Wedding"]
@@ -137,18 +128,20 @@ def scrape_site_links(url, max_links=8):
         relevant_special_offer_words=["special_offer","offers","offer","Specials"]
         relevant_Accommodation_words=["Explore All Accommodations","Accommodation","stay"]
         relevant_specails_packages_words=["Daily Specials","Weekend Specials","Holiday Specials","Promotional Specials","Family Packages","Couples Packages","Party Packages","Event Packages","Set Menus"]
+        relevant_similar_hotels_words = ["Similar Hotels", "Nearby Hotels", "Related Hotels", "Alternative Hotels"]
+        relevant_amenities_words = ["Amenities", "Hotel Amenities", "Facilities", "Hotel Facilities"]
 
         link_text_pattern = re.compile('|'.join(link_text_patterns), re.IGNORECASE)
 
         for a in anchor_tags:
             link_text = a.get_text(strip=True)
-
             if link_text_pattern.search(link_text):
                 link_url = a.get('href')
                 if link_url:
                     link_url = urljoin(url, link_url)
                     if link_url not in unique_urls:
                         unique_urls.add(link_url)
+
                         if any(word.lower() in link_text.lower() for word in relevant_meetings_words):
                             site_links.append((link_url, "Meetings & Events"))
                         elif any(word.lower() in link_text.lower() for word in relevant_Entertainment_words):
@@ -166,263 +159,49 @@ def scrape_site_links(url, max_links=8):
                         elif any(word.lower() in link_text.lower() for word in relevant_Rooms_words):
                             site_links.append((link_url, "Rooms & Suites"))
                         elif any(word.lower() in link_text.lower() for word in relevant_special_offer_words):
-                            site_links.append((link_url, "Specials"))
+                            site_links.append((link_url, "Special Offers")) 
                         elif any(word.lower() in link_text.lower() for word in relevant_Accommodation_words):
-                            site_links.append((link_url, "Accommodations"))
+                            site_links.append((link_url, "Accommodation")) 
                         elif any(word.lower() in link_text.lower() for word in relevant_specails_packages_words):
-                            site_links.append((link_url, "Packages"))
+                            site_links.append((link_url, "Specials & Packages"))
+                        elif any(word.lower() in link_text.lower() for word in relevant_similar_hotels_words):
+                            site_links.append((link_url, "Similar Hotels"))
+                        elif any(word.lower() in link_text.lower() for word in relevant_amenities_words):
+                            site_links.append((link_url, "Amenities"))
 
                         if len(site_links) >= max_links:
                             break
 
         return site_links
 
-    except Timeout:
-        print(f"Timeout occurred while trying to access {url}")
+    except requests.RequestException as e:
+        print(f"Error during requests to {url}: {str(e)}")
         return []
 
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while trying to access {url}: {e}")
-        return []
+def save_to_excel(property_name, urls, output_file):
+    wb = Workbook()
+    ws = wb.active
 
-def scrape_google_map_url(query, retries=3, wait_time=10):
-    query = query + " site:google.com/maps"
-    base_url = "https://www.google.com/search?q="
-    search_url = base_url + query.replace(' ', '+')
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
 
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("start-maximized")
+    ws.append(["Hotel Name", "Category", "Link", "Summary 1", "Summary 2"])
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
 
-    try:
-        for attempt in range(retries):
-            try:
-                driver.get(search_url)
-                WebDriverWait(driver, wait_time).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div.g'))
-                )
+    for url, category in urls:
+        summary1, summary2 = scrape_first_proper_paragraph(url)
+        ws.append([property_name, category, url, summary1, summary2])
 
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                search_results = soup.find_all('div', class_='g')
-
-                for result in search_results:
-                    link_tag = result.find('a')
-                    if link_tag:
-                        link = link_tag.get('href')
-                        if 'google.com/maps' in link:
-                            return link
-
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed with error: {e}")
-                time.sleep(5)
-
-        return None
-
-    finally:
-        driver.quit()
-
-def extract_website_from_url(url):
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        website = soup.find('cite').text
-
-        return website
-
-    except Timeout:
-        print(f"Timeout occurred while trying to access {url}")
-        return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while trying to access {url}: {e}")
-        return None
-
-def save_dataframe_to_excel(df, file_path):
-    try:
-        df.to_excel(file_path, index=False)
-        print(f"DataFrame saved to {file_path}")
-    except Exception as e:
-        print("An error occurred while saving DataFrame to Excel:", e)
-
-def search_wikipedia(property_name):
-    base_url = "https://en.wikipedia.org/wiki/"
-    search_url = base_url + property_name.replace(' ', '_')
-
-    try:
-        response = requests.get(search_url, headers=headers, timeout=15)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        paragraph = soup.find('p').get_text()
-
-        return paragraph
-
-    except Timeout:
-        print(f"Timeout occurred while trying to access {search_url}")
-        return None
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while trying to access {search_url}: {e}")
-        return None
-
-def scrape_google_search(query, retries=3, wait_time=10):
-    base_url = "https://www.google.com/search?q="
-    search_url = base_url + query.replace(' ', '+')
-
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("start-maximized")
-
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
-    try:
-        for attempt in range(retries):
-            try:
-                driver.get(search_url)
-                WebDriverWait(driver, wait_time).until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, 'div.g'))
-                )
-
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                search_results = soup.find_all('div', class_='g')
-
-                urls = []
-
-                for result in search_results:
-                    link_tag = result.find('a')
-                    if link_tag:
-                        link = link_tag.get('href')
-                        urls.append(link)
-
-                    if len(urls) >= 5:
-                        break
-
-                return urls
-
-            except Exception as e:
-                print(f"Attempt {attempt + 1} failed with error: {e}")
-                time.sleep(5)
-
-        return []
-
-    finally:
-        driver.quit()
-
-def extract_text_from_google_search(url):
-    try:
-        response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status()
-
-        soup = BeautifulSoup(response.text, 'html.parser')
-        p_tags = soup.find_all('p')
-
-        first_two_paragraphs_text = ''
-        paragraph_count = 0
-
-        for p in p_tags:
-            paragraph = p.text.strip()
-            if len(paragraph) > 100:
-                first_two_paragraphs_text += paragraph + ' '
-                paragraph_count += 1
-                if paragraph_count == 3:
-                    break
-
-        if paragraph_count < 2:
-            raise ValueError("Less than two proper paragraphs found.")
-
-        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', first_two_paragraphs_text)
-
-        while len(sentences) < 4:
-            sentences.append('')
-
-        return sentences[0] + ' ' + sentences[1], sentences[2] + ' ' + sentences[3]
-
-    except Timeout:
-        print(f"Timeout occurred while trying to access {url}")
-        return None, None
-
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred while trying to access {url}: {e}")
-        return None, None
-
-def main():
-    st.title("Property Information Scraper")
-
-    uploaded_file = st.file_uploader("Choose a file", type=["xlsx"])
-
-    if uploaded_file is not None:
-        df = pd.read_excel(uploaded_file)
-
-        columns = df.columns.tolist()
-        selected_column = st.selectbox("Select the column containing property names:", columns)
-
-        property_names = df[selected_column].dropna().unique()
-
-        progress_bar = st.progress(0)
-        progress_text = st.empty()
-
-        results = []
-
-        for idx, property_name in enumerate(property_names):
-            progress_text.text(f"Processing {property_name} ({idx + 1} of {len(property_names)})")
-            progress_bar.progress((idx + 1) / len(property_names))
-
-            variants = generate_variants(property_name)
-
-            property_data = {
-                "Property Name": property_name,
-                "Description": None,
-                "Links": [],
-                "Google Map URL": None,
-                "First Two Paragraphs from Google Search": None
-            }
-
-            description = None
-            for variant in variants:
-                description = search_wikipedia(variant)
-                if description:
-                    break
-
-            property_data["Description"] = description
-
-            links = scrape_site_links(property_name)
-            property_data["Links"] = links
-
-            map_url = scrape_google_map_url(property_name)
-            property_data["Google Map URL"] = map_url
-
-            google_search_urls = scrape_google_search(property_name)
-            first_two_paragraphs = None
-            for url in google_search_urls:
-                first_two_paragraphs = extract_text_from_google_search(url)
-                if first_two_paragraphs[0] and first_two_paragraphs[1]:
-                    break
-
-            property_data["First Two Paragraphs from Google Search"] = first_two_paragraphs
-
-            results.append(property_data)
-
-        output_df = pd.DataFrame(results)
-        output_file = "scraped_properties.xlsx"
-        save_dataframe_to_excel(output_df, output_file)
-
-        st.success("Scraping complete! You can download the results below:")
-        st.download_button(
-            label="Download Excel file",
-            data=output_df.to_excel(index=False),
-            file_name=output_file,
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    wb.save(output_file)
 
 if __name__ == "__main__":
-    main()
+    property_name = input("Enter the property name: ")
+    output_file = input("Enter the output file name (with .xlsx extension): ")
+
+    urls = scrape_site_links('https://www.example.com')  # Replace with the actual URL
+    save_to_excel(property_name, urls, output_file)
+
+    print(f"Data saved to {output_file}")
