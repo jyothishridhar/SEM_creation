@@ -54,21 +54,12 @@ def generate_variants(property_name, max_variants=5):
 # Define function to scrape the first proper paragraph
 def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
     try:
-        # chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-        # if not chrome_bin:
-        #     print("GOOGLE_CHROME_BIN environment variable is not set.")
-        #     return None, None
         
-        # print(f"GOOGLE_CHROME_BIN is set to: {chrome_bin}")
-        
-        options = Options()
-        # options.add_argument("--headless")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--no-sandbox")
-        # options.add_argument("--disable-dev-shm-usage")
-        # options.add_argument("start-maximized")
-        # options.binary_location = chrome_bin
-
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox')
+        options.add_argument('--window-size=1420,1080')
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         
         
@@ -265,26 +256,12 @@ def scrape_site_links(url, max_links=8):
 def scrape_similar_hotels(google_url, header_text):
     
     try:
-        # print("Fetching similar hotels...")
-        # chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-        # if not chrome_bin:
-        #     print("GOOGLE_CHROME_BIN environment variable is not set.")
-        #     return None
         
-        # print(f"GOOGLE_CHROME_BIN is set to: {chrome_bin}")
-        
-        # options = Options()
-        # options.add_argument("--headless")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--no-sandbox")
-        # options.add_argument("--disable-dev-shm-usage")
-        # options.add_argument("start-maximized")
-        # options.binary_location = chrome_bin
-
-        # driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        # driver.get(google_url)
-        # time.sleep(7)
-        options = Options()
+        options = webdriver.ChromeOptions()
+        options.add_argument('--no-sandbox')
+        options.add_argument('--window-size=1420,1080')
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(google_url)
         time.sleep(6)
