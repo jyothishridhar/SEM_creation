@@ -66,19 +66,23 @@ def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
         
         for attempt in range(retries):
             try:
-                driver.get(url)
-                time.sleep(4)
+                # Fetch the HTML content of the webpage with a timeout
+                response = requests.get(url, headers=headers, timeout=10)
+                response.raise_for_status()  # Raise an exception for non-HTTP or non-HTTPS URLs
+
+                # Parse the HTML content
+                soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # Use explicit wait to ensure the page has fully rendered
-                WebDriverWait(driver, wait_time).until(
-                    EC.presence_of_element_located((By.TAG_NAME, 'p'))
-                )
+                # # Use explicit wait to ensure the page has fully rendered
+                # WebDriverWait(driver, wait_time).until(
+                #     EC.presence_of_element_located((By.TAG_NAME, 'p'))
+                # )
                 
-                # Get the page source
-                page_source = driver.page_source
+                # # Get the page source
+                # page_source = driver.page_source
                 
-                # Parse the HTML with BeautifulSoup
-                soup = BeautifulSoup(page_source, 'html.parser')
+                # # Parse the HTML with BeautifulSoup
+                # soup = BeautifulSoup(page_source, 'html.parser')
                 print("Soup object fetched successfully.")  # Log to check if fetching is successful
                 
                 # Find all <p> tags
