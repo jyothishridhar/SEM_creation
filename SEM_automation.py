@@ -326,58 +326,64 @@ def scrape_amenities(url):
         print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
 
-def fetch_amenities_from_links(site_links):
+def fetch_amenities_from_links(site_links, depth):
     amenities_found = []
     for link_url, _ in site_links:
         try:
             amenities = scrape_amenities(link_url)
             if amenities:
                 amenities_found.extend(amenities)
+            
+            if depth > 1:
+                sub_site_links = scrape_site_links(link_url)
+                amenities_from_sub_links = fetch_amenities_from_links(sub_site_links, depth-1)
+                amenities_found.extend(amenities_from_sub_links)
+                
         except Exception as e:
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
     return amenities_found[:8]
 
-def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15):
-    amenities_found = set()
-    for link_url, _ in site_links:
-        try:
-            response = requests.get(link_url, headers=headers,timeout=timeout)
-            response.raise_for_status()
-            amenities = scrape_amenities(link_url)
-            if amenities:
-                amenities_found.update(amenities)
+# def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15):
+#     amenities_found = set()
+#     for link_url, _ in site_links:
+#         try:
+#             response = requests.get(link_url, headers=headers,timeout=timeout)
+#             response.raise_for_status()
+#             amenities = scrape_amenities(link_url)
+#             if amenities:
+#                 amenities_found.update(amenities)
 
-            if max_sub_links > 0:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                anchor_tags = soup.find_all('a', href=True)
-                unique_urls = set()
-                sub_links = []
+#             if max_sub_links > 0:
+#                 soup = BeautifulSoup(response.text, 'html.parser')
+#                 anchor_tags = soup.find_all('a', href=True)
+#                 unique_urls = set()
+#                 sub_links = []
 
-                for a in anchor_tags:
-                    sub_link_url = a['href']
-                    sub_link_url = urljoin(link_url, sub_link_url)
-                    if sub_link_url not in unique_urls:
-                        unique_urls.add(sub_link_url)
-                        sub_links.append(sub_link_url)
-                        if len(sub_links) >= max_sub_links:
-                            break
+#                 for a in anchor_tags:
+#                     sub_link_url = a['href']
+#                     sub_link_url = urljoin(link_url, sub_link_url)
+#                     if sub_link_url not in unique_urls:
+#                         unique_urls.add(sub_link_url)
+#                         sub_links.append(sub_link_url)
+#                         if len(sub_links) >= max_sub_links:
+#                             break
 
-                for sub_link_url in sub_links:
-                    sub_link_amenities = scrape_amenities(sub_link_url)
-                    if sub_link_amenities:
-                        amenities_found.update(sub_link_amenities)
-                        max_sub_links -= 1
+#                 for sub_link_url in sub_links:
+#                     sub_link_amenities = scrape_amenities(sub_link_url)
+#                     if sub_link_amenities:
+#                         amenities_found.update(sub_link_amenities)
+#                         max_sub_links -= 1
 
-                max_sub_links -= len(sub_links)
-                if max_sub_links <= 0:
-                    break
-        except Timeout:
-            print(f"Timeout occurred while fetching amenities from sub-link: {link_url}")
-            continue
-        except Exception as e:
-            print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
+#                 max_sub_links -= len(sub_links)
+#                 if max_sub_links <= 0:
+#                     break
+#         except Timeout:
+#             print(f"Timeout occurred while fetching amenities from sub-link: {link_url}")
+#             continue
+#         except Exception as e:
+#             print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
 
-    return list(amenities_found)[:8]
+#     return list(amenities_found)[:8]
 
  
 # Streamlit app code
@@ -386,6 +392,8 @@ st.title("SEM Creation Template")
 url = st.text_input("Enter URL")
 # Input for output file path
 output_file = st.text_input("Enter Header")
+# Input for depth level
+depth = st.number_input("Enter Depth Level", min_value=1, max_value=10, value=1)
 
 if st.button("Scrape Data"):
     if url:
@@ -398,18 +406,14 @@ if st.button("Scrape Data"):
         # Fetch amenities from link URLs
         site_links = scrape_site_links(url)
         if site_links:
-            amenities_from_links = fetch_amenities_from_links(site_links)
+            amenities_from_links = fetch_amenities_from_links(site_links, depth)
         else:
             print("No site links found.")
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
 
-        # Fetch amenities from subsequent links
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
-        print("amenities_from_sub_links", amenities_from_sub_links)
-
         # Combine all fetched amenities
-        all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
+        all_amenities = amenities_found + amenities_from_links
         # Ensure we have at most 8 unique amenities
         unique_amenities = list(set(all_amenities))[:8]
 
@@ -417,7 +421,7 @@ if st.button("Scrape Data"):
         sub_links_processed = 0
         while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
             max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
-            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+            additional_amenities_from_sub_links = fetch_amenities_from_links(site_links, depth)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
             sub_links_processed += max_sub_links  # Update the number of sub-links processed
