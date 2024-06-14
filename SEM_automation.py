@@ -283,7 +283,7 @@ def scrape_similar_hotels(google_url, header_text):
         options = Options()
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
         driver.get(google_url)
-        time.sleep(2)
+        time.sleep(6)
  
         search_box = driver.find_element(By.XPATH, "//textarea[@id='APjFqb' and @name='q']")
         search_box.send_keys(header_text)
@@ -526,6 +526,8 @@ if st.button("Scrape Data"):
             file_name="data.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
-        st.dataframe(worksheet)
+        buffer.seek(0)
+        df_from_excel = pd.read_excel(buffer, sheet_name='Sheet1')
+        st.dataframe(df_from_excel)
     else:
         st.warning("Please enter a URL.")
