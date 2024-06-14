@@ -76,6 +76,7 @@ def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
         for attempt in range(retries):
             try:
                 driver.get(url)
+                time.sleep(4)
                 
                 # Use explicit wait to ensure the page has fully rendered
                 WebDriverWait(driver, wait_time).until(
@@ -127,8 +128,11 @@ def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
         print("All attempts failed. Unable to scrape the paragraphs.")
         return None, None
     
-    finally:
-        driver.quit()
+    # finally:
+    #     driver.quit()
+    except Exception as e:
+        # print("An error occurred while extracting header from file path:", e)
+        return None
    
 def extract_header_from_path(output_file):
     try:
