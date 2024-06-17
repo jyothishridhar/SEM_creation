@@ -330,52 +330,44 @@ def scrape_amenities(url):
         print(f"An error occurred while scraping amenities from URL {url}: {e}")
         return []
 
-# Function to fetch amenities from sub-links
-def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, depth=3):
+def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15):
     amenities_found = set()
     explored_links = set()
     new_links = []
 
-    def explore_links(current_links, current_depth):
-        nonlocal max_sub_links
+    for link_url, _ in site_links:
+        if len(amenities_found) >= 8:
+            break
 
-        if current_depth > depth or max_sub_links <= 0:
-            return
+        if len(explored_links) >= max_sub_links:
+            break
 
-        for link_url in current_links:
-            if link_url in explored_links:
-                continue
+        if link_url in explored_links:
+            continue
 
-            explored_links.add(link_url)
-            try:
-                response = requests.get(link_url, timeout=timeout)
-                response.raise_for_status()
+        explored_links.add(link_url)
 
-                amenities = scrape_amenities(link_url)
-                if amenities:
-                    amenities_found.update(amenities)
+        try:
+            response = requests.get(link_url, timeout=timeout)
+            response.raise_for_status()
 
-                if current_depth < depth:
-                    soup = BeautifulSoup(response.text, 'html.parser')
-                    anchor_tags = soup.find_all('a', href=True)
-                    for a in anchor_tags:
-                        sub_link_url = a['href']
-                        sub_link_url = urljoin(link_url, sub_link_url)
-                        if sub_link_url not in explored_links and sub_link_url.startswith('http'):
-                            new_links.append(sub_link_url)
+            amenities = scrape_amenities(link_url)
+            if amenities:
+                amenities_found.update(amenities)
 
-            except Exception as e:
-                print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
+            soup = BeautifulSoup(response.text, 'html.parser')
+            anchor_tags = soup.find_all('a', href=True)
+            for a in anchor_tags:
+                sub_link_url = a['href']
+                sub_link_url = urljoin(link_url, sub_link_url)
+                if sub_link_url not in explored_links and sub_link_url.startswith('http'):
+                    new_links.append(sub_link_url)
 
-        max_sub_links -= len(new_links)
-        if new_links and max_sub_links > 0:
-            print(f"Depth {current_depth}: Exploring {len(new_links)} new links")
-            explore_links(new_links, current_depth + 1)
-
-    initial_links = [link_url for link_url, _ in site_links]
-    explore_links(initial_links, 1)
+        except Exception as e:
+            print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
 
     return list(amenities_found)[:8]
+
 
 # Streamlit app code
 st.title("SEM Creation Template")
