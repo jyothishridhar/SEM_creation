@@ -338,7 +338,7 @@ def fetch_amenities_from_links(site_links):
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
     return amenities_found[:8]
 
-def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=2):
+def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=3):
     amenities_found = set()
     
     def explore_links(current_links, current_depth):
@@ -417,7 +417,7 @@ if st.button("Scrape Data"):
         amenities_from_links = fetch_amenities_from_links(site_links)
 
         # Fetch amenities from sub-links with specified depth
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=4, depth=2)
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=4, depth=4)
 
         # Combine all amenities found
         all_amenities = amenities_from_links + amenities_from_sub_links
