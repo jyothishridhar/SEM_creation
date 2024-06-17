@@ -387,7 +387,7 @@ if st.button("Scrape Data"):
         site_links = scrape_site_links(url)
 
         # Fetch amenities from sub-links
-        sub_links_amenities = fetch_amenities_from_sub_links(site_links, depth=depth)
+        sub_links_amenities = fetch_amenities_from_sub_links(site_links)
 
         # Display the fetched amenities
         st.write("Fetched Amenities:")
