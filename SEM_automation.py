@@ -327,45 +327,63 @@ def scrape_amenities(url):
         print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
 
-def fetch_amenities_from_links(site_links, max_depth=1, timeout=15):
-    def fetch_amenities_recursive(link_url, current_depth):
-        amenities_found = set()
-        if current_depth > max_depth:
-            return amenities_found
-        
+def fetch_amenities_from_links(site_links):
+    amenities_found = []
+    for link_url, _ in site_links:
         try:
-            response = requests.get(link_url, headers=headers, timeout=timeout)
-            response.raise_for_status()
             amenities = scrape_amenities(link_url)
             if amenities:
-                amenities_found.update(amenities)
-
-            if current_depth < max_depth:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                anchor_tags = soup.find_all('a', href=True)
-                unique_urls = set()
-
-                for a in anchor_tags:
-                    sub_link_url = a['href']
-                    sub_link_url = urljoin(link_url, sub_link_url)
-                    if sub_link_url not in unique_urls:
-                        unique_urls.add(sub_link_url)
-                        sub_link_amenities = fetch_amenities_recursive(sub_link_url, current_depth + 1)
-                        amenities_found.update(sub_link_amenities)
-
-        except Timeout:
-            print(f"Timeout occurred while fetching amenities from link: {link_url}")
+                amenities_found.extend(amenities)
         except Exception as e:
-            print(f"An error occurred while fetching amenities from link {link_url}: {e}")
+            print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
+    return amenities_found[:8]
+
+def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=1):
+    amenities_found = set()
+    
+    def explore_links(current_links, current_depth):
+        nonlocal max_sub_links
         
-        return amenities_found
-
-    all_amenities_found = set()
-    for link_url, _ in site_links:
-        amenities = fetch_amenities_recursive(link_url, 0)
-        all_amenities_found.update(amenities)
-
-    return list(all_amenities_found)[:8]
+        if current_depth > depth or max_sub_links <= 0:
+            return
+        
+        new_links = []
+        for link_url in current_links:
+            try:
+                response = requests.get(link_url, headers=headers, timeout=timeout)
+                response.raise_for_status()
+                amenities = scrape_amenities(link_url)
+                if amenities:
+                    amenities_found.update(amenities)
+                
+                if current_depth < depth:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    anchor_tags = soup.find_all('a', href=True)
+                    unique_urls = set()
+                    
+                    for a in anchor_tags:
+                        sub_link_url = a['href']
+                        sub_link_url = urljoin(link_url, sub_link_url)
+                        if sub_link_url not in unique_urls:
+                            unique_urls.add(sub_link_url)
+                            new_links.append(sub_link_url)
+                            if len(new_links) >= max_sub_links:
+                                break
+                            
+            except Timeout:
+                print(f"Timeout occurred while fetching amenities from sub-link: {link_url}")
+                continue
+            except Exception as e:
+                print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
+        
+        max_sub_links -= len(new_links)
+        if new_links and max_sub_links > 0:
+            explore_links(new_links, current_depth + 1)
+    
+    initial_links = [link_url for link_url, _ in site_links]
+    explore_links(initial_links, 1)
+    
+    return list(amenities_found)[:8]
  
 # Streamlit app code
 st.title("SEM Creation Template")
@@ -396,7 +414,7 @@ if st.button("Scrape Data"):
         # print("amenities_from_sub_links", amenities_from_sub_links)
 
         # Combine all fetched amenities
-        all_amenities = amenities_found + amenities_from_links 
+        all_amenities = amenities_found + amenities_from_links + fetch_amenities_from_sub_links
         # Ensure we have at most 8 unique amenities
         unique_amenities = list(set(all_amenities))[:8]
 
@@ -404,7 +422,7 @@ if st.button("Scrape Data"):
         sub_links_processed = 0
         while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
             max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
-            additional_amenities_from_sub_links = fetch_amenities_from_links(site_links, max_sub_links)
+            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
             sub_links_processed += max_sub_links  # Update the number of sub-links processed
