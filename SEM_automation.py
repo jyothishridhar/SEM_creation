@@ -404,7 +404,7 @@ if st.button("Scrape Data"):
         sub_links_processed = 0
         while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
             max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
-            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+            additional_amenities_from_sub_links = fetch_amenities_from_links(site_links, max_sub_links)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
             sub_links_processed += max_sub_links  # Update the number of sub-links processed
