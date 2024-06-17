@@ -399,7 +399,8 @@ if st.button("Scrape Data"):
 
         amenities_found = scrape_amenities(url)
         print("amenities_found", amenities_found)
-
+ 
+        # Fetch amenities from link URLs
         site_links = scrape_site_links(url)
         if site_links:
             amenities_from_links = fetch_amenities_from_links(site_links)
@@ -407,10 +408,13 @@ if st.button("Scrape Data"):
             print("No site links found.")
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
-
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=4)
-
-        all_amenities = amenities_from_links + amenities_from_sub_links
+ 
+        # Fetch amenities from subsequent links
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
+        print("amenities_from_sub_links", amenities_from_sub_links)
+ 
+        # Combine all fetched amenities
+        all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
 
         unique_amenities = list(set(all_amenities))[:8]
 
