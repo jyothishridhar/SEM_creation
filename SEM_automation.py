@@ -305,26 +305,38 @@ def scrape_amenities(url):
         if url.startswith(('tel:', 'mailto:')):
             print("Skipping URL:", url)
             return []
-
+ 
         # Fetch the HTML content of the webpage with a timeout
         response = requests.get(url, headers=headers, timeout=10)
         response.raise_for_status()  # Raise an exception for non-HTTP or non-HTTPS URLs
-
+ 
         # Parse the HTML content
         soup = BeautifulSoup(response.text, 'html.parser')
         all_text = soup.get_text()
-
+ 
         # Find amenities
         found_amenities = []
         for amenity in amenities_to_check:
             if re.search(amenity, all_text, re.IGNORECASE):
                 found_amenities.append(amenity)
-        
+       
         print("found_amenities", found_amenities)
         return list(dict.fromkeys(found_amenities))[:8]
     except Exception as e:
         print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
+
+# def fetch_amenities_from_links(site_links):
+#     amenities_found = []
+#     for link_url, _ in site_links:
+#         try:
+#             amenities = scrape_amenities(link_url)
+#             if amenities:
+#                 amenities_found.extend(amenities)
+#         except Exception as e:
+#             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
+#     return amenities_found[:8]
+
 
 def fetch_amenities_from_links(site_links, depth):
     amenities_found = []
@@ -392,6 +404,8 @@ st.title("SEM Creation Template")
 url = st.text_input("Enter URL")
 # Input for output file path
 output_file = st.text_input("Enter Header")
+# Input for depth level
+depth = st.number_input("Enter Depth Level", min_value=1, max_value=10, value=1)
 
 if st.button("Scrape Data"):
     if url:
@@ -404,18 +418,14 @@ if st.button("Scrape Data"):
         # Fetch amenities from link URLs
         site_links = scrape_site_links(url)
         if site_links:
-            amenities_from_links = fetch_amenities_from_links(site_links)
+            amenities_from_links = fetch_amenities_from_links(site_links, depth)
         else:
             print("No site links found.")
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
 
-        # Fetch amenities from subsequent links
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
-        print("amenities_from_sub_links", amenities_from_sub_links)
-
         # Combine all fetched amenities
-        all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
+        all_amenities = amenities_found + amenities_from_links
         # Ensure we have at most 8 unique amenities
         unique_amenities = list(set(all_amenities))[:8]
 
@@ -423,7 +433,7 @@ if st.button("Scrape Data"):
         sub_links_processed = 0
         while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
             max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
-            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+            additional_amenities_from_sub_links = fetch_amenities_from_links(site_links, depth)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
             sub_links_processed += max_sub_links  # Update the number of sub-links processed
