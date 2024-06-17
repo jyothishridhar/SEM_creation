@@ -93,7 +93,7 @@ def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
                 for p in p_tags:
                     paragraph = p.text.strip()
                     print(f"Paragraph {paragraph_count + 1}: {paragraph[:100]}...")  # Print the first 100 characters
-                    if len(paragraph) > 100:  # Check if the paragraph is not empty
+                    if len(paragraph) > 2000:  # Check if the paragraph is not empty
                         first_two_paragraphs_text += paragraph + ' '  # Add space between paragraphs
                         paragraph_count += 1
                         if paragraph_count == 3:  # Stop after finding the first two paragraphs
@@ -338,7 +338,7 @@ def fetch_amenities_from_links(site_links):
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
     return amenities_found[:8]    
 
-def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=1):
+def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, depth=1):
     amenities_found = set()
     def scrape_links(link_url, current_depth):
         nonlocal amenities_found
@@ -406,12 +406,25 @@ if st.button("Scrape Data"):
         print("amenities_from_links", amenities_from_links)
 
         # Fetch amenities from subsequent links with specified depth
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17, depth=depth)
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=10, depth=depth)
         print("amenities_from_sub_links", amenities_from_sub_links)
 
         # Combine all fetched amenities
         all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
         unique_amenities = list(set(all_amenities))[:8]
+        
+        sub_links_processed = 0
+        while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 35:
+            max_sub_links = 35 - sub_links_processed  # Fetch amenities from remaining sub-links
+            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+            unique_amenities.extend(additional_amenities_from_sub_links)
+            unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
+            sub_links_processed += max_sub_links  # Update the number of sub-links processed
+            if sub_links_processed >= 35:
+                break  # Break out of the loop after checking 20 sub-links
+ 
+        sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
+        # st.write("Fetched Amenities:", sorted_amenities)
 
         sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x) if x in amenities_to_check else len(amenities_to_check))
         st.write("Fetched Amenities:", sorted_amenities)
