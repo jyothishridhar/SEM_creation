@@ -299,40 +299,49 @@ amenities_to_check = [
 # Define a custom exception for timeout
 class TimeoutException(Exception):
     pass
-
-
-# Function to scrape amenities from a given URL
+ 
 def scrape_amenities(url):
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-
+        # Check if the URL is a tel: or mailto: link
+        if url.startswith(('tel:', 'mailto:')):
+            print("Skipping URL:", url)
+            return []
+ 
+        # Fetch the HTML content of the webpage with a timeout
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise an exception for non-HTTP or non-HTTPS URLs
+ 
+        # Parse the HTML content
         soup = BeautifulSoup(response.text, 'html.parser')
         all_text = soup.get_text()
-
-        # List of amenities to check for
-        amenities_to_check = [
-            "Swimming Pool", "Poolside", "Pool area", "Pool deck", "Pool bar", "Beach Access", "Spa Services",
-            "Gourmet Dining", "Free Breakfast", "Free Parking", "Fitness Center", "Room Service", "Daily Housekeeping",
-            "Free WiFi", "Public Wi-Fi", "Wi-Fi Internet Access", "Wi-Fi", "Business Center", "A/C", "Air-conditioning",
-            "Air Conditioning & Heating", "Air Conditioning", "Laundry Services", "Easy Check In", "Express Check Out",
-            "Phone", "Hair Dryer", "Bicycle Rental", "Balcony", "Balcony/terrace", "Lift", "Iron & Ironing Board"
-        ]
-
+ 
+        # Find amenities
         found_amenities = []
         for amenity in amenities_to_check:
             if re.search(amenity, all_text, re.IGNORECASE):
                 found_amenities.append(amenity)
-
+       
+        print("found_amenities", found_amenities)
         return list(dict.fromkeys(found_amenities))[:8]
-
     except Exception as e:
-        print(f"An error occurred while scraping amenities from URL {url}: {e}")
+        print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
-
-def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15):
-    amenities_found = set()
+    
+def fetch_amenities_from_links(site_links):
+    amenities_found = []
     for link_url, _ in site_links:
+        try:
+            amenities = scrape_amenities(link_url)
+            if amenities:
+                amenities_found.extend(amenities)
+        except Exception as e:
+            print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
+    return amenities_found[:8]    
+
+def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=1):
+    amenities_found = set()
+    def scrape_links(link_url, current_depth):
+        nonlocal amenities_found
         try:
             response = requests.get(link_url, headers=headers, timeout=timeout)
             response.raise_for_status()
@@ -340,7 +349,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15):
             if amenities:
                 amenities_found.update(amenities)
 
-            if max_sub_links > 0:
+            if current_depth < depth:
                 soup = BeautifulSoup(response.text, 'html.parser')
                 anchor_tags = soup.find_all('a', href=True)
                 unique_urls = set()
@@ -356,42 +365,15 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15):
                             break
 
                 for sub_link_url in sub_links:
-                    sub_link_amenities = scrape_amenities(sub_link_url)
-                    if sub_link_amenities:
-                        amenities_found.update(sub_link_amenities)
-                        max_sub_links -= 1
+                    scrape_links(sub_link_url, current_depth + 1)
 
-                # Navigate to the next page if available
-                next_page_link = find_next_page_link(soup)  # Implement this function to find the link to the next page
-                if next_page_link and max_sub_links > 0:
-                    next_page_response = requests.get(next_page_link, headers=headers, timeout=timeout)
-                    next_page_response.raise_for_status()
-                    next_page_soup = BeautifulSoup(next_page_response.text, 'html.parser')
-                    next_page_anchor_tags = next_page_soup.find_all('a', href=True)
-
-                    for a in next_page_anchor_tags:
-                        sub_link_url = a['href']
-                        sub_link_url = urljoin(next_page_link, sub_link_url)
-                        if sub_link_url not in unique_urls:
-                            unique_urls.add(sub_link_url)
-                            sub_links.append(sub_link_url)
-                            if len(sub_links) >= max_sub_links:
-                                break
-
-                    for sub_link_url in sub_links:
-                        sub_link_amenities = scrape_amenities(sub_link_url)
-                        if sub_link_amenities:
-                            amenities_found.update(sub_link_amenities)
-                            max_sub_links -= 1
-
-            if max_sub_links <= 0:
-                break
-
-        except Timeout:
+        except requests.Timeout:
             print(f"Timeout occurred while fetching amenities from sub-link: {link_url}")
-            continue
         except Exception as e:
             print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
+
+    for link_url, _ in site_links:
+        scrape_links(link_url, 1)
 
     return list(amenities_found)[:8]
 
@@ -402,14 +384,18 @@ url = st.text_input("Enter URL")
 # Input for output file path
 output_file = st.text_input("Enter Header")
  
+# Input for depth
+depth = st.number_input("Enter depth", min_value=1, step=1)
+
 if st.button("Scrape Data"):
     if url:
+        # Assuming these functions are defined elsewhere
         ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
         header_text = extract_header_from_path(output_file) if output_file else None
- 
+
         amenities_found = scrape_amenities(url)
         print("amenities_found", amenities_found)
- 
+
         # Fetch amenities from link URLs
         site_links = scrape_site_links(url)
         if site_links:
@@ -418,29 +404,17 @@ if st.button("Scrape Data"):
             print("No site links found.")
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
- 
-        # Fetch amenities from subsequent links
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
+
+        # Fetch amenities from subsequent links with specified depth
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17, depth=depth)
         print("amenities_from_sub_links", amenities_from_sub_links)
- 
+
         # Combine all fetched amenities
         all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
-        # Ensure we have at most 8 unique amenities
         unique_amenities = list(set(all_amenities))[:8]
- 
-        # Continue fetching amenities until we have less than 8 but more than 4, or after checking 20 sub-links
-        sub_links_processed = 0
-        while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
-            max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
-            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
-            unique_amenities.extend(additional_amenities_from_sub_links)
-            unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
-            sub_links_processed += max_sub_links  # Update the number of sub-links processed
-            if sub_links_processed >= 20:
-                break  # Break out of the loop after checking 20 sub-links
- 
-        sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
-        # st.write("Fetched Amenities:", sorted_amenities)
+
+        sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x) if x in amenities_to_check else len(amenities_to_check))
+        st.write("Fetched Amenities:", sorted_amenities)
 
         property_name_variants = generate_variants(header_text) if header_text else []
 
