@@ -288,78 +288,73 @@ def scrape_similar_hotels(google_url, header_text):
         return None
  
    
-# Define the list of amenities to check for
-amenities_to_check = [
-    "Swimming Pool","Poolside","Pool area","Pool deck","Pool bar","Beach Access","Spa Services","Gourmet Dining","Free Breakfast","Free Parking","Fitness Center",
-    "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","A/C","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
-    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board"
+# # Define the list of amenities to check for
+# amenities_to_check = [
+#     "Swimming Pool","Poolside","Pool area","Pool deck","Pool bar","Beach Access","Spa Services","Gourmet Dining","Free Breakfast","Free Parking","Fitness Center",
+#     "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","A/C","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
+#     "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board"
     
-]
+# ]
 
 # Define a custom exception for timeout
 class TimeoutException(Exception):
     pass
 
 
+# Function to scrape amenities from a given URL
 def scrape_amenities(url):
     try:
-        if url.startswith(('tel:', 'mailto:')):
-            print("Skipping URL:", url)
-            return []
-
-        response = requests.get(url, headers=headers, timeout=10)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
 
         soup = BeautifulSoup(response.text, 'html.parser')
         all_text = soup.get_text()
 
+        # List of amenities to check for
+        amenities_to_check = [
+            "Swimming Pool", "Poolside", "Pool area", "Pool deck", "Pool bar", "Beach Access", "Spa Services",
+            "Gourmet Dining", "Free Breakfast", "Free Parking", "Fitness Center", "Room Service", "Daily Housekeeping",
+            "Free WiFi", "Public Wi-Fi", "Wi-Fi Internet Access", "Wi-Fi", "Business Center", "A/C", "Air-conditioning",
+            "Air Conditioning & Heating", "Air Conditioning", "Laundry Services", "Easy Check In", "Express Check Out",
+            "Phone", "Hair Dryer", "Bicycle Rental", "Balcony", "Balcony/terrace", "Lift", "Iron & Ironing Board"
+        ]
+
         found_amenities = []
         for amenity in amenities_to_check:
             if re.search(amenity, all_text, re.IGNORECASE):
                 found_amenities.append(amenity)
-        
-        print("found_amenities", found_amenities)
+
         return list(dict.fromkeys(found_amenities))[:8]
+
     except Exception as e:
-        print(f"An error occurred while scraping amenities from url {url}: {e}")
+        print(f"An error occurred while scraping amenities from URL {url}: {e}")
         return []
 
-
-def fetch_amenities_from_links(site_links):
-    amenities_found = []
-    for link_url, _ in site_links:
-        try:
-            amenities = scrape_amenities(link_url)
-            if amenities:
-                amenities_found.extend(amenities)
-        except Exception as e:
-            print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
-    return list(dict.fromkeys(amenities_found))[:8]
-
+# Function to fetch amenities from sub-links
 def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, depth=3):
     amenities_found = set()
     explored_links = set()
     new_links = []
-
+    
     def explore_links(current_links, current_depth):
         nonlocal max_sub_links
-
+        
         if current_depth > depth or max_sub_links <= 0:
             return
-
+        
         for link_url in current_links:
             if link_url in explored_links:
                 continue
-
+            
             explored_links.add(link_url)
             try:
-                response = requests.get(link_url, headers=headers, timeout=timeout)
+                response = requests.get(link_url, timeout=timeout)
                 response.raise_for_status()
-
+                
                 amenities = scrape_amenities(link_url)
                 if amenities:
                     amenities_found.update(amenities)
-
+                
                 if current_depth < depth:
                     soup = BeautifulSoup(response.text, 'html.parser')
                     anchor_tags = soup.find_all('a', href=True)
@@ -368,19 +363,20 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
                         sub_link_url = urljoin(link_url, sub_link_url)
                         if sub_link_url not in explored_links and sub_link_url.startswith('http'):
                             new_links.append(sub_link_url)
-
+                            
             except Exception as e:
                 print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
-
+        
         max_sub_links -= len(new_links)
         if new_links and max_sub_links > 0:
             print(f"Depth {current_depth}: Exploring {len(new_links)} new links")
             explore_links(new_links, current_depth + 1)
-
+    
     initial_links = [link_url for link_url, _ in site_links]
     explore_links(initial_links, 1)
-
+    
     return list(amenities_found)[:8]
+
 
 # Streamlit app code
 st.title("SEM Creation Template")
@@ -389,19 +385,24 @@ url = st.text_input("Enter URL")
 # Input for output file path
 output_file = st.text_input("Enter Header")
 
+# Input for depth of sub-links
+depth = st.slider("Depth of Sub-links", min_value=1, max_value=5, value=3)
+
 if st.button("Scrape Data"):
     if url:
         ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
         header_text = extract_header_from_path(output_file) if output_file else None
 
-        # amenities_found = scrape_amenities(url)
-        # print("amenities_found", amenities_found)
+        main_amenities = scrape_amenities(url)
 
-        site_links = [(url, '')]  # Convert input URL to site links format
-        amenities_from_links = fetch_amenities_from_links(site_links)
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=3)
+        # Scrape site links from the main URL
+        site_links = scrape_site_links(url)
 
-        all_amenities = amenities_from_links + amenities_from_sub_links
+        # Fetch amenities from sub-links
+        sub_links_amenities = fetch_amenities_from_sub_links(site_links, depth=depth)
+
+        # Combine amenities from main URL and sub-links
+        all_amenities = main_amenities + sub_links_amenities
 
         unique_amenities = list(set(all_amenities))[:8]
 
