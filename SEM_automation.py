@@ -338,6 +338,7 @@ def fetch_amenities_from_links(site_links):
 def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, depth=3):
     amenities_found = set()
     explored_links = set()
+    new_links = []
     
     def explore_links(current_links, current_depth):
         nonlocal max_sub_links
@@ -345,7 +346,6 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
         if current_depth > depth or max_sub_links <= 0:
             return
         
-        new_links = []
         for link_url in current_links:
             if link_url in explored_links:
                 continue
@@ -367,12 +367,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
                         sub_link_url = urljoin(link_url, sub_link_url)
                         if sub_link_url not in explored_links and sub_link_url.startswith('http'):
                             new_links.append(sub_link_url)
-                            if len(new_links) >= max_sub_links:
-                                break
                             
-            except Timeout:
-                print(f"Timeout occurred while fetching amenities from sub-link: {link_url}")
-                continue
             except Exception as e:
                 print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
         
@@ -385,6 +380,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
     explore_links(initial_links, 1)
     
     return list(amenities_found)[:8]
+
 
 # Streamlit app code
 st.title("SEM Creation Template")
