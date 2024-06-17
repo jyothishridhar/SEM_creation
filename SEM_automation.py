@@ -324,6 +324,7 @@ def scrape_amenities(url):
         print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
 
+
 def fetch_amenities_from_links(site_links):
     amenities_found = []
     for link_url, _ in site_links:
@@ -339,26 +340,26 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
     amenities_found = set()
     explored_links = set()
     new_links = []
-    
+
     def explore_links(current_links, current_depth):
         nonlocal max_sub_links
-        
+
         if current_depth > depth or max_sub_links <= 0:
             return
-        
+
         for link_url in current_links:
             if link_url in explored_links:
                 continue
-            
+
             explored_links.add(link_url)
             try:
                 response = requests.get(link_url, headers=headers, timeout=timeout)
                 response.raise_for_status()
-                
+
                 amenities = scrape_amenities(link_url)
                 if amenities:
                     amenities_found.update(amenities)
-                
+
                 if current_depth < depth:
                     soup = BeautifulSoup(response.text, 'html.parser')
                     anchor_tags = soup.find_all('a', href=True)
@@ -367,18 +368,18 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
                         sub_link_url = urljoin(link_url, sub_link_url)
                         if sub_link_url not in explored_links and sub_link_url.startswith('http'):
                             new_links.append(sub_link_url)
-                            
+
             except Exception as e:
                 print(f"An error occurred while fetching amenities from sub-link {link_url}: {e}")
-        
+
         max_sub_links -= len(new_links)
         if new_links and max_sub_links > 0:
             print(f"Depth {current_depth}: Exploring {len(new_links)} new links")
             explore_links(new_links, current_depth + 1)
-    
+
     initial_links = [link_url for link_url, _ in site_links]
     explore_links(initial_links, 1)
-    
+
     return list(amenities_found)[:8]
 
 
@@ -394,20 +395,14 @@ if st.button("Scrape Data"):
         ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
         header_text = extract_header_from_path(output_file) if output_file else None
 
-        amenities_found = scrape_amenities(url)
-        print("amenities_found", amenities_found)
+        # amenities_found = scrape_amenities(url)
+        # print("amenities_found", amenities_found)
 
-        site_links = scrape_site_links(url)
-        if site_links:
-            amenities_from_links = fetch_amenities_from_links(site_links)
-        else:
-            print("No site links found.")
-            amenities_from_links = []
-        print("amenities_from_links", amenities_from_links)
+        site_links = [(url, '')]  # Convert input URL to site links format
+        amenities_from_links = fetch_amenities_from_links(site_links)
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=3)
 
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=4)
-
-        all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
+        all_amenities = amenities_from_links + amenities_from_sub_links
 
         unique_amenities = list(set(all_amenities))[:8]
 
