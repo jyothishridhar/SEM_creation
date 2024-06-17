@@ -382,7 +382,6 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
 
     return list(amenities_found)[:8]
 
-
 # Streamlit app code
 st.title("SEM Creation Template")
 # Input URL field
