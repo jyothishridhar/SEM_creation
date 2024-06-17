@@ -300,6 +300,7 @@ amenities_to_check = [
 class TimeoutException(Exception):
     pass
 
+
 def scrape_amenities(url):
     try:
         # Check if the URL is a tel: or mailto: link
@@ -409,22 +410,12 @@ if st.button("Scrape Data"):
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
 
-        # Fetch amenities from subsequent links
-        # amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
-        # print("amenities_from_sub_links", amenities_from_sub_links)
-        
-        # Fetch amenities from the main links
-        amenities_from_links = fetch_amenities_from_links(site_links)
-
         # Fetch amenities from sub-links with specified depth
         amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=4, depth=4)
 
         # Combine all amenities found
         all_amenities = amenities_from_links + amenities_from_sub_links
 
-
-        # # Combine all fetched amenities
-        # all_amenities = amenities_found + amenities_from_links + fetch_amenities_from_sub_links
         # Ensure we have at most 8 unique amenities
         unique_amenities = list(set(all_amenities))[:8]
 
