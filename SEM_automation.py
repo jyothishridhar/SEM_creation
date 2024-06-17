@@ -337,7 +337,7 @@ def fetch_amenities_from_links(site_links):
                 amenities_found.extend(amenities)
         except Exception as e:
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
-    return amenities_found[:8]
+    return list(dict.fromkeys(amenities_found))[:8]
 
 def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, depth=3):
     amenities_found = set()
@@ -365,7 +365,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
                     for a in anchor_tags:
                         sub_link_url = a['href']
                         sub_link_url = urljoin(link_url, sub_link_url)
-                        if sub_link_url not in unique_urls and 'http' in sub_link_url:
+                        if sub_link_url not in unique_urls and sub_link_url.startswith('http'):
                             unique_urls.add(sub_link_url)
                             new_links.append(sub_link_url)
                             if len(new_links) >= max_sub_links:
@@ -385,8 +385,9 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
     explore_links(initial_links, 1)
     
     return list(amenities_found)[:8]
- 
-## Streamlit app code
+
+
+# Streamlit app code
 st.title("SEM Creation Template")
 # Input URL field
 url = st.text_input("Enter URL")
