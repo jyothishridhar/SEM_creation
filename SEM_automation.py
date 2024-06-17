@@ -339,7 +339,7 @@ def fetch_amenities_from_links(site_links):
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
     return amenities_found[:8]
 
-def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, depth=3):
+def fetch_amenities_from_sub_links(site_links, max_sub_links=4, timeout=15, depth=3):
     amenities_found = set()
     
     def explore_links(current_links, current_depth):
@@ -365,7 +365,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
                     for a in anchor_tags:
                         sub_link_url = a['href']
                         sub_link_url = urljoin(link_url, sub_link_url)
-                        if sub_link_url not in unique_urls:
+                        if sub_link_url not in unique_urls and 'http' in sub_link_url:
                             unique_urls.add(sub_link_url)
                             new_links.append(sub_link_url)
                             if len(new_links) >= max_sub_links:
@@ -386,7 +386,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
     
     return list(amenities_found)[:8]
  
-# Streamlit app code
+## Streamlit app code
 st.title("SEM Creation Template")
 # Input URL field
 url = st.text_input("Enter URL")
@@ -411,7 +411,7 @@ if st.button("Scrape Data"):
         print("amenities_from_links", amenities_from_links)
 
         # Fetch amenities from sub-links with specified depth
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=4)
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=4, depth=4)
 
         # Combine all amenities found
         all_amenities = amenities_from_links + amenities_from_sub_links
