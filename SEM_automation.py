@@ -378,12 +378,14 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=15, dep
         
         max_sub_links -= len(new_links)
         if new_links and max_sub_links > 0:
+            print(f"Depth {current_depth}: Exploring {len(new_links)} new links")
             explore_links(new_links, current_depth + 1)
     
     initial_links = [link_url for link_url, _ in site_links]
     explore_links(initial_links, 1)
     
     return list(amenities_found)[:8]
+
 
 # Streamlit app code
 st.title("SEM Creation Template")
@@ -399,8 +401,7 @@ if st.button("Scrape Data"):
 
         amenities_found = scrape_amenities(url)
         print("amenities_found", amenities_found)
- 
-        # Fetch amenities from link URLs
+
         site_links = scrape_site_links(url)
         if site_links:
             amenities_from_links = fetch_amenities_from_links(site_links)
@@ -408,12 +409,9 @@ if st.button("Scrape Data"):
             print("No site links found.")
             amenities_from_links = []
         print("amenities_from_links", amenities_from_links)
- 
-        # Fetch amenities from subsequent links
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=17)
-        print("amenities_from_sub_links", amenities_from_sub_links)
- 
-        # Combine all fetched amenities
+
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=4)
+
         all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
 
         unique_amenities = list(set(all_amenities))[:8]
@@ -421,7 +419,7 @@ if st.button("Scrape Data"):
         sub_links_processed = 0
         while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
             max_sub_links = 20 - sub_links_processed
-            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+            additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links, depth=4)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]
             sub_links_processed += max_sub_links
