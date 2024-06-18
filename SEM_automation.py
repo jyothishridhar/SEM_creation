@@ -477,8 +477,8 @@ if st.button("Scrape Data"):
         directory = os.path.dirname(local_file_path)
 
         # Debug print to check the directory and path
-        st.write(f"Local file path: {local_file_path}")
-        st.write(f"Directory: {directory}")
+        # st.write(f"Local file path: {local_file_path}")
+        # st.write(f"Directory: {directory}")
 
         # Ensure the directory exists if directory path is not empty
         if directory and not os.path.exists(directory):
