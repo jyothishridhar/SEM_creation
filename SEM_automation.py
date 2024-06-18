@@ -292,7 +292,7 @@ def scrape_similar_hotels(google_url, header_text):
 amenities_to_check = [
     "Swimming Pool","Poolside","Pool area","Pool deck","Pool bar","Beach Access","Spa Services","Gourmet Dining","Free Breakfast","Free Parking","Fitness Center",
     "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
-    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board","Bonfires"
+    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board","Bonfires","Kitchenette"
     
 ]
 
