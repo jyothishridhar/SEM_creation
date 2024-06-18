@@ -472,44 +472,81 @@ if st.button("Scrape Data"):
         callouts_df = pd.DataFrame({'Callouts': Callouts})
         df = pd.concat([df, callouts_df], axis=1)
 
-        buffer = io.BytesIO()
-        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False, sheet_name='Sheet1')
-            workbook = writer.book
-            worksheet = writer.sheets['Sheet1']
-            header_fill = PatternFill(start_color='C0C0C0', end_color='C0C0C0', fill_type='solid')
-            header_font = Font(color='FFFFFF', bold=True)
-            for cell in worksheet[1]:
-                cell.fill = header_fill
-                cell.font = header_font
-            padding = 5
-            specific_columns = {
-                0: 15, 1: 15, 2: 15, 3: 40, 4: 18, 5: 30, 6: 22, 7: 30, 8: 18, 9: 15
-            }
-            for i, column in enumerate(worksheet.columns):
-                if i in specific_columns:
-                    adjusted_width = specific_columns[i]
-                else:
-                    max_length = 0
-                    column = [cell for cell in column]
-                    for cell in column:
-                        try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(cell.value)
-                        except:
-                            pass
-                    adjusted_width = (max_length + padding)
-                worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
-        buffer.seek(0)
+        # Define local file path
+        local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
+        directory = os.path.dirname(local_file_path)
 
+        # Debug print to check the directory and path
+        st.write(f"Local file path: {local_file_path}")
+        st.write(f"Directory: {directory}")
+
+        # Ensure the directory exists if directory path is not empty
+        if directory and not os.path.exists(directory):
+            try:
+                os.makedirs(directory)
+                st.write(f"Directory created: {directory}")
+            except Exception as e:
+                st.error(f"Error creating directory: {e}")
+
+        # Save to local path with error handling
+        try:
+            with pd.ExcelWriter(local_file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Sheet1')
+                workbook = writer.book
+                worksheet = writer.sheets['Sheet1']
+                
+                # Define header styles
+                header_fill = PatternFill(start_color='C0C0C0', end_color='C0C0C0', fill_type='solid')
+                header_font = Font(color='FFFFFF', bold=True)
+                for cell in worksheet[1]:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                
+                # Adjust column widths
+                padding = 5
+                specific_columns = {
+                    0: 15, 1: 15, 2: 15, 3: 40, 4: 18, 5: 30, 6: 22, 7: 30, 8: 18, 9: 15
+                }
+                for i, column in enumerate(worksheet.columns):
+                    if i in specific_columns:
+                        adjusted_width = specific_columns[i]
+                    else:
+                        max_length = 0
+                        column = [cell for cell in column]
+                        for cell in column:
+                            try:
+                                if len(str(cell.value)) > max_length:
+                                    max_length = len(cell.value)
+                            except:
+                                pass
+                        adjusted_width = (max_length + padding)
+                    worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+            st.success(f"File saved successfully at {local_file_path}")
+        except Exception as e:
+            st.error(f"Error saving file: {e}")
+
+        # Read the saved file back into a BytesIO buffer
+        buffer = io.BytesIO()
+        try:
+            with open(local_file_path, 'rb') as f:
+                buffer.write(f.read())
+            buffer.seek(0)
+        except Exception as e:
+            st.error(f"Error reading file: {e}")
+
+        # Provide the file for download
         st.download_button(
             label="Download data as Excel",
             data=buffer,
             file_name="data.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
         buffer.seek(0)
-        df_from_excel = pd.read_excel(buffer, sheet_name='Sheet1')
-        st.dataframe(df_from_excel)
+        try:
+            df_from_excel = pd.read_excel(buffer, sheet_name='Sheet1')
+            st.dataframe(df_from_excel)
+        except Exception as e:
+            st.error(f"Error loading dataframe: {e}")
     else:
         st.warning("Please enter a URL.")
