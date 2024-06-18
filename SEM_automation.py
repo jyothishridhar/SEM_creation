@@ -174,7 +174,7 @@ def scrape_site_links(url, max_links=8):
             "Official Site", "Rooms & Suites", "Wedding", "Facilities & Activities", "Sports & Entertainment", 
             "Specials", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Poolside", "Pool area", 
             "Pool deck", "Pool bar", "Tours & Activities", "All Dining & Bar Facilities", "Activities", "Groups & Meetings", 
-            "Dining", "Meetings & Events", "Contact Us","CONTACT" "Photos", "Events", "Pool & sea", "Wellness & fitness", 
+            "Dining", "Meetings & Events", "Contact Us","CONTACT" ,"EXPERIENCE","Photos", "Events", "Pool & sea", "Wellness & fitness", 
             "Water Park", "Salt Water Swimming Pool", "Accommodation", "Amenities", "Location", "Rooms", "Gallery", 
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
