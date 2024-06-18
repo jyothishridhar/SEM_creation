@@ -174,7 +174,7 @@ def scrape_site_links(url, max_links=8):
             "Official Site", "Rooms & Suites", "Wedding", "Facilities & Activities", "Sports & Entertainment", 
             "Specials", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Poolside", "Pool area", 
             "Pool deck", "Pool bar", "Tours & Activities", "All Dining & Bar Facilities", "Activities", "Groups & Meetings", 
-            "Dining", "Meetings & Events", "Contact Us", "Photos", "Events", "Pool & sea", "Wellness & fitness", 
+            "Dining", "Meetings & Events", "Contact Us","CONTACT" "Photos", "Events", "Pool & sea", "Wellness & fitness", 
             "Water Park", "Salt Water Swimming Pool", "Accommodation", "Amenities", "Location", "Rooms", "Gallery", 
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
@@ -291,8 +291,8 @@ def scrape_similar_hotels(google_url, header_text):
 # Define the list of amenities to check for
 amenities_to_check = [
     "Swimming Pool","Poolside","Pool area","Pool deck","Pool bar","Beach Access","Spa Services","Gourmet Dining","Free Breakfast","Free Parking","Fitness Center",
-    "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","A/C","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
-    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board"
+    "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
+    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board","Bonfires"
     
 ]
 
@@ -450,7 +450,7 @@ if st.button("Scrape Data"):
             page_content = response.text
             water_keywords = ["swimming pool", "Water Park", "pool", "sea", "Salt Water Swimming Pool", "Pool & sea", "Poolside", "Pool area", "Pool deck", "Pool bar"]
             balcony_keywords = ["balcony", "terrace", "veranda", "patio", "deck", "outdoor seating", "private balcony", "balcony view", "balcony access", "sun deck", "rooftop terrace", "lanai", "courtyard", "loggia", "open-air balcony", "French balcony", "wrap-around balcony", "overlooking balcony", "scenic balcony", "balcony suite"]
-            pet_keywords = ["pet-friendly", "pet-friendly policy", "dog-friendly", "cat-friendly", "pet-friendly hotel", "pet-friendly apartment", "pet-friendly rental", "pet-friendly room", "pet-friendly amenities", "pet-friendly patio", "pet-friendly park", "pet-friendly restaurant", "pet-friendly neighborhood", "pet-friendly community", "pet-friendly activities", "pet-friendly events", "pet-friendly travel", "pet-friendly vacations", "pet-friendly establishments"]
+            pet_keywords = ["pet-friendly","Pet Friendly", "pet-friendly policy", "dog-friendly", "cat-friendly", "pet-friendly hotel", "pet-friendly apartment", "pet-friendly rental", "pet-friendly room", "pet-friendly amenities", "pet-friendly patio", "pet-friendly park", "pet-friendly restaurant", "pet-friendly neighborhood", "pet-friendly community", "pet-friendly activities", "pet-friendly events", "pet-friendly travel", "pet-friendly vacations", "pet-friendly establishments"]
 
             water_found = [keyword for keyword in water_keywords if re.search(keyword, page_content, re.IGNORECASE)]
             balcony_found = [keyword for keyword in balcony_keywords if re.search(keyword, page_content, re.IGNORECASE)]
