@@ -144,17 +144,14 @@ def extract_header_from_path(output_file):
 def scrape_site_links(url, max_links=8):
     try:
         headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    }
- 
-        response = requests.get(url, headers=headers,timeout=15)
-        # Fetch the HTML content of the webpage
-        # response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad requests
- 
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+
         # Parse the HTML content
         soup = BeautifulSoup(response.text, 'html.parser')
-        # print("soup---", soup)
 
         # Find the main content and footer sections
         main_content = soup.body
@@ -174,7 +171,7 @@ def scrape_site_links(url, max_links=8):
             "Official Site", "Rooms & Suites", "Wedding", "Facilities & Activities", "Sports & Entertainment", 
             "Specials", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Poolside", "Pool area", 
             "Pool deck", "Pool bar", "Tours & Activities", "All Dining & Bar Facilities", "Activities", "Groups & Meetings", 
-            "Dining", "Meetings & Events", "Contact Us","CONTACT" ,"EXPERIENCE","Photos", "Events", "Pool & sea", "Wellness & fitness", 
+            "Dining", "Meetings & Events", "Contact Us", "CONTACT", "EXPERIENCE", "Photos", "Events", "Pool & sea", "Wellness & fitness", 
             "Water Park", "Salt Water Swimming Pool", "Accommodation", "Amenities", "Location", "Rooms", "Gallery", 
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
@@ -185,15 +182,15 @@ def scrape_site_links(url, max_links=8):
         # Relevant words related to specific categories
         relevant_meetings_words = ["Meetings & Events", "Groups & Meetings", "Meetings", "Events", "Wedding"]
         relevant_Entertainment_words = ["Sports & Entertainment", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Sports", "Entertainment"]
-        relevant_Facilities_Activities_words = ["Facilities & Activities", "Activities", "Pool & sea", "Salt Water Swimming Pool", "Our Services","swimming pool", "pool", "sea", "Water Park",  "Poolside", "Pool area", "Pool deck", "Pool bar", "Tours & Activities"]
-        relevant_Spa_Wellness_words = ["Spa & Wellness", "Spa", "Wellness & fitness","Discover"]
-        relevant_Photo_Gallery_words = ["PhotoGallery", "Photo","Gallery"]
-        relevant_Dining_words = ["All Dining & Bar Facilities","Restaurant","Food & Beverage Amenities", "Dining", "Gastronomy","Eatery", "Pub", "Diner", "Trattoria", "Brasserie", "Café", "Bistro","In Room dining","Private Dining"]
+        relevant_Facilities_Activities_words = ["Facilities & Activities", "Activities", "Pool & sea", "Salt Water Swimming Pool", "Our Services", "swimming pool", "pool", "sea", "Water Park",  "Poolside", "Pool area", "Pool deck", "Pool bar", "Tours & Activities"]
+        relevant_Spa_Wellness_words = ["Spa & Wellness", "Spa", "Wellness & fitness", "Discover"]
+        relevant_Photo_Gallery_words = ["PhotoGallery", "Photo", "Gallery"]
+        relevant_Dining_words = ["All Dining & Bar Facilities", "Restaurant", "Food & Beverage Amenities", "Dining", "Gastronomy", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", "Café", "Bistro", "In Room dining", "Private Dining"]
         relevant_Location_words = ["Location", "Locations", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", "Premises", "Establishment"]
         relevant_Rooms_words = ["Rooms", "Room", "Rooms & Suites", "Rooms and Suites", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites"]
-        relevant_special_offer_words=["special_offer","offers","offer","Specials"]
-        relevant_Accommodation_words=["Explore All Accommodations","Accommodation","stay"]
-        relevant_specails_packages_words=["Daily Specials","Weekend Specials","Holiday Specials","Promotional Specials","Family Packages","Couples Packages","Party Packages","Event Packages","Set Menus"]
+        relevant_special_offer_words = ["special_offer", "offers", "offer", "Specials"]
+        relevant_Accommodation_words = ["Explore All Accommodations", "Accommodation", "stay"]
+        relevant_specials_packages_words = ["Daily Specials", "Weekend Specials", "Holiday Specials", "Promotional Specials", "Family Packages", "Couples Packages", "Party Packages", "Event Packages", "Set Menus"]
 
         # Compile regex pattern for link text
         link_text_pattern = re.compile('|'.join(link_text_patterns), re.IGNORECASE)
@@ -203,18 +200,18 @@ def scrape_site_links(url, max_links=8):
             # Get the text of the anchor tag, stripped of leading and trailing whitespace
             link_text = a.get_text(strip=True)
 
-            # Check if the link text matches any of the desired site links
-            if link_text_pattern.search(link_text):
-                # Extract the href attribute to get the link URL
-                link_url = a.get('href')
-                if link_url and not link_url.startswith(("javascript:void(0)", "#", "mailto:", "tel:")):
-                    # Complete relative URLs if necessary
-                    link_url = urljoin(url, link_url)
+            # Extract the href attribute to get the link URL
+            link_url = a.get('href')
+            if link_url and not link_url.startswith(("javascript:void(0)", "#", "mailto:", "tel:")):
+                # Complete relative URLs if necessary
+                link_url = urljoin(url, link_url)
 
-                    # Add the URL to the set of unique URLs
-                    if link_url not in unique_urls:
-                        unique_urls.add(link_url)
+                # Add the URL to the set of unique URLs
+                if link_url not in unique_urls:
+                    unique_urls.add(link_url)
 
+                    # Check if the link text matches any of the desired site links
+                    if link_text_pattern.search(link_text):
                         # Check if the link text matches any meeting/event-related words
                         if any(word.lower() in link_text.lower() for word in relevant_meetings_words):
                             site_links.append((link_url, "Meetings & Events"))
@@ -233,11 +230,11 @@ def scrape_site_links(url, max_links=8):
                         elif any(word.lower() in link_text.lower() for word in relevant_Rooms_words):
                             site_links.append((link_url, "Rooms & Suites"))
                         elif any(word.lower() in link_text.lower() for word in relevant_special_offer_words):
-                            site_links.append((link_url, "Special Offers")) 
+                            site_links.append((link_url, "Special Offers"))
                         elif any(word.lower() in link_text.lower() for word in relevant_Accommodation_words):
-                            site_links.append((link_url, "Accommodation"))   
-                        elif any(word.lower() in link_text.lower() for word in relevant_specails_packages_words):
-                            site_links.append((link_url, "Specials & Packages"))             
+                            site_links.append((link_url, "Accommodation"))
+                        elif any(word.lower() in link_text.lower() for word in relevant_specials_packages_words):
+                            site_links.append((link_url, "Specials & Packages"))
                         else:
                             # Append both link URL and link text
                             site_links.append((link_url, link_text))
@@ -245,6 +242,12 @@ def scrape_site_links(url, max_links=8):
                         # Break the loop if the maximum number of links is reached
                         if len(site_links) >= max_links:
                             break
+                    else:
+                        print(f"Skipping irrelevant link: {link_text} ({link_url})")
+                else:
+                    print(f"Duplicate link detected: {link_url}")
+            else:
+                print(f"Skipping invalid link: {link_url}")
 
         return site_links
 
