@@ -35,8 +35,9 @@ def generate_variants(property_name, max_variants=5):
     # Split the property name into words
     words = property_name.split()
     
-    # Remove specific words that should not be at the end or have "&" at the end
-    words = [word.rstrip('&') for word in words if word.lower() not in ['the', 'and'] and not word.endswith('&')]
+    # Remove specific words that should not be at the end
+    words_to_avoid_at_end = ['The', 'And']
+    words = [word for word in words if word not in words_to_avoid_at_end]
     
     # Generate permutations of words
     word_permutations = permutations(words)
