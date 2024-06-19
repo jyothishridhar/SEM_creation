@@ -275,14 +275,14 @@ def scrape_similar_hotels(google_url, header_text):
             negative_keywords.append(result.text)
             
         # Remove 'hotel' and 'resort' from the keywords
-        negative_keywords = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
+        filtered_negative_keywords  = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
     
  
         # Close the browser
         driver.quit()
  
         # print("Negative Keywords:", negative_keywords)
-        return negative_keywords
+        return filtered_negative_keywords 
  
     except Exception as e:
         print("An error occurred while scraping similar hotels:", e)
@@ -433,14 +433,14 @@ if st.button("Scrape Data"):
 
         property_name_variants = generate_variants(header_text) if header_text else []
 
-        negative_keywords = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
+        filtered_negative_keywords  = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
 
         header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
         paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
         site_links_df = pd.DataFrame(site_links, columns=['Link URL', 'Link Text'])
         property_url = pd.DataFrame({'property_url': [url]})
         property_name_variants_df = pd.DataFrame({'Variants of Property Name': property_name_variants})
-        negative_keywords_df = pd.DataFrame(negative_keywords, columns=['Negative Keywords'])
+        negative_keywords_df = pd.DataFrame(filtered_negative_keywords , columns=['Negative Keywords'])
         amenities_df = pd.DataFrame({'Amenities': sorted_amenities})
         Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
 
