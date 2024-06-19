@@ -273,12 +273,16 @@ def scrape_similar_hotels(google_url, header_text):
         negative_keywords = []
         for result in search_results:
             negative_keywords.append(result.text)
+            
+        # Remove 'hotel' and 'resort' from the keywords
+        filtered_negative_keywords = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
+    
  
         # Close the browser
         driver.quit()
  
         # print("Negative Keywords:", negative_keywords)
-        return negative_keywords
+        return filtered_negative_keywords
  
     except Exception as e:
         print("An error occurred while scraping similar hotels:", e)
@@ -335,7 +339,7 @@ def fetch_amenities_from_links(site_links):
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
     return amenities_found[:8]    
 
-def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, depth=1):
+def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, depth=1):
     amenities_found = set()
     def scrape_links(link_url, current_depth):
         nonlocal amenities_found
@@ -403,7 +407,7 @@ if st.button("Scrape Data"):
         print("amenities_from_links", amenities_from_links)
  
         # Fetch amenities from subsequent links with specified depth
-        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=10, depth=depth)
+        amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=20, depth=depth)
         print("amenities_from_sub_links", amenities_from_sub_links)
  
         # Combine all fetched amenities
@@ -411,13 +415,13 @@ if st.button("Scrape Data"):
         unique_amenities = list(set(all_amenities))[:8]
        
         sub_links_processed = 0
-        while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 35:
-            max_sub_links = 35 - sub_links_processed  # Fetch amenities from remaining sub-links
+        while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 20:
+            max_sub_links = 20 - sub_links_processed  # Fetch amenities from remaining sub-links
             additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
             unique_amenities.extend(additional_amenities_from_sub_links)
             unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
             sub_links_processed += max_sub_links  # Update the number of sub-links processed
-            if sub_links_processed >= 35:
+            if sub_links_processed >= 20:
                 break  # Break out of the loop after checking 20 sub-links
  
         # sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
