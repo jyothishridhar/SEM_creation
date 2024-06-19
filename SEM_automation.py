@@ -275,7 +275,7 @@ def scrape_similar_hotels(google_url, header_text):
             negative_keywords.append(result.text)
             
         # Remove 'hotel' and 'resort' from the keywords
-        filtered_negative_keywords  = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
+        filtered_negative_keywords  = [keyword.replace('Hotel', '').replace('Resort', '').strip() for keyword in negative_keywords]
     
  
         # Close the browser
