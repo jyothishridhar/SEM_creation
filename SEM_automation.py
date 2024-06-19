@@ -195,21 +195,16 @@ def scrape_site_links(url, max_links=8):
         # Compile regex pattern for link text
         link_text_pattern = re.compile('|'.join(link_text_patterns), re.IGNORECASE)
 
-        # Loop through all anchor tags and extract links with specific text
         for a in anchor_tags:
-            # Get the text of the anchor tag, stripped of leading and trailing whitespace
             link_text = a.get_text(strip=True)
-
-            # Extract the href attribute to get the link URL
             link_url = a.get('href')
-            if link_url and not link_url.startswith(("javascript:void(0)", "#", "mailto:", "tel:")):
-                # Complete relative URLs if necessary
+
+            if link_url and not link_url.startswith(("javascript:", "#", "mailto:", "tel:")):
                 link_url = urljoin(url, link_url)
 
-                # Add the URL to the set of unique URLs
                 if link_url not in unique_urls:
                     unique_urls.add(link_url)
-
+                    
                     # Check if the link text matches any of the desired site links
                     if link_text_pattern.search(link_text):
                         # Check if the link text matches any meeting/event-related words
