@@ -275,14 +275,14 @@ def scrape_similar_hotels(google_url, header_text):
             negative_keywords.append(result.text)
             
         # Remove 'hotel' and 'resort' from the keywords
-        filtered_negative_keywords = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
+        negative_keywords = [keyword.replace('hotel', '').replace('resort', '').strip() for keyword in negative_keywords]
     
  
         # Close the browser
         driver.quit()
  
         # print("Negative Keywords:", negative_keywords)
-        return filtered_negative_keywords
+        return negative_keywords
  
     except Exception as e:
         print("An error occurred while scraping similar hotels:", e)
