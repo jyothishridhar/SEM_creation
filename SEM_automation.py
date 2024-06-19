@@ -207,7 +207,7 @@ def scrape_site_links(url, max_links=8):
             if link_text_pattern.search(link_text):
                 # Extract the href attribute to get the link URL
                 link_url = a.get('href')
-                if link_url and not link_url.startswith("javascript:void(0)"):
+                if link_url and not link_url.startswith(("javascript:void(0)", "#", "mailto:", "tel:")):
                     # Complete relative URLs if necessary
                     link_url = urljoin(url, link_url)
 
