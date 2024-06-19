@@ -147,19 +147,24 @@ def scrape_site_links(url, max_links=8):
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
  
-        response = requests.get(url, headers=headers,timeout=15)
-        # Fetch the HTML content of the webpage
-        # response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for bad requests
- 
-        # Parse the HTML content
-        soup = BeautifulSoup(response.text, 'html.parser')
-        # print("soup---", soup)
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")  # Run in headless mode
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--no-sandbox")
+        service = Service('path/to/chromedriver')  # Update path to your ChromeDriver
 
-        # Find the main content and footer sections
-        main_content = soup.body
-        footer_content = soup.find('footer')
+        driver = webdriver.Chrome(service=service, options=chrome_options)
+        driver.get(url)
 
+        # Wait for the page to load (adjust the timeout as needed)
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.TAG_NAME, 'body'))
+        )
+
+        # Find main content and footer sections
+        main_content = driver.find_element(By.TAG_NAME, 'body')
+        footer_content = driver.find_elements(By.TAG_NAME, 'footer')
+        
         # Combine all anchor tags from main content and footer
         anchor_tags = main_content.find_all('a') + (footer_content.find_all('a') if footer_content else [])
 
