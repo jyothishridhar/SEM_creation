@@ -32,24 +32,19 @@ headers = {
 }
  
 def generate_variants(property_name, max_variants=5):
-    print("Property Name:", property_name)  # Check the value of property_name
-    if property_name is None:
-        return []
-
-    # Remove non-alphabetic characters (symbols and numbers) from the property name
-    clean_property_name = re.sub(r'[^a-zA-Z\s]', '', property_name)
-
-    # Split the cleaned property name into words
-    words = clean_property_name.split()
-
+    # Split the property name into words
+    words = property_name.split()
+    
+    # Remove specific words that should not be at the end or have "&" at the end
+    words = [word.rstrip('&') for word in words if word.lower() not in ['the', 'and'] and not word.endswith('&')]
+    
     # Generate permutations of words
     word_permutations = permutations(words)
-
+    
     # Join permutations to form variant names
     variants = [' '.join(perm) for i, perm in enumerate(word_permutations) if i < max_variants]
-
+    
     return variants
-
  
 # Define function to scrape the first proper paragraph
 def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
