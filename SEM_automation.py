@@ -447,13 +447,13 @@ if st.button("Scrape Data"):
         header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
         paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
         site_links_df = pd.DataFrame(site_links, columns=['Link URL', 'Link Text'])
-        property_url = pd.DataFrame({'property_url': [url]})
+        property_url_df = pd.DataFrame({'property_url': [url]})
         property_name_variants_df = pd.DataFrame({'Variants of Property Name': property_name_variants})
-        negative_keywords_df = pd.DataFrame(filtered_negative_keywords , columns=['Negative Keywords'])
+        negative_keywords_df = pd.DataFrame(filtered_negative_keywords, columns=['Negative Keywords'])
         amenities_df = pd.DataFrame({'Amenities': sorted_amenities})
         Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
 
-        df = pd.concat([header_df, paragraph_df, site_links_df, property_url, property_name_variants_df, negative_keywords_df, amenities_df], axis=1)
+        df = pd.concat([header_df, paragraph_df, site_links_df, property_url_df, property_name_variants_df, negative_keywords_df, amenities_df], axis=1)
 
         try:
             response = requests.get(url, timeout=10)
