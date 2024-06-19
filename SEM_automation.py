@@ -440,6 +440,9 @@ if st.button("Scrape Data"):
         property_name_variants = generate_variants(header_text) if header_text else []
 
         filtered_negative_keywords  = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
+        
+        # Debug print to check the final filtered negative keywords
+        print("Final filtered Negative Keywords:", filtered_negative_keywords)
 
         header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
         paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
