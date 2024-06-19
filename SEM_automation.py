@@ -165,7 +165,9 @@ def scrape_site_links(url, max_links=8):
         footer_content = driver.find_elements(By.TAG_NAME, 'footer')
         
         # Combine all anchor tags from main content and footer
-        anchor_tags = main_content.find_all('a') + (footer_content.find_all('a') if footer_content else [])
+        anchor_tags = main_content.find_elements(By.TAG_NAME, 'a')
+        if footer_content:
+            anchor_tags += footer_content[0].find_elements(By.TAG_NAME, 'a')
 
         # Set to store unique URLs
         unique_urls = set()
