@@ -51,9 +51,12 @@ def generate_variants(property_name, max_variants=5):
     final_variants = []
     for variant in variants:
         for word in words_to_avoid_at_end:
-            if variant.endswith(word):
-                variant = ' '.join([w for w in variant.split() if w != word])
-                variant = f"{variant} {word}"
+            # If the variant ends with the word and it's not the only word in the variant
+            if variant.endswith(f" {word}") and len(variant.split()) > 1:
+                # Split the variant and move the word to the beginning
+                words = variant.split()
+                words.remove(word)
+                variant = f"{word} {' '.join(words)}"
         final_variants.append(variant.strip())
     
     return final_variants
