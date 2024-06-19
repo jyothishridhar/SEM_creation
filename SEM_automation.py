@@ -147,27 +147,21 @@ def scrape_site_links(url, max_links=8):
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
     }
  
-        options = webdriver.ChromeOptions()
-        options.add_argument('--no-sandbox')
-        options.add_argument('--window-size=1420,1080')
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        driver.get(url)
+        response = requests.get(url, headers=headers,timeout=15)
+        # Fetch the HTML content of the webpage
+        # response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for bad requests
+ 
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'html.parser')
+        # print("soup---", soup)
 
-        # Wait for the page to load (adjust the timeout as needed)
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.TAG_NAME, 'body'))
-        )
+        # Find the main content and footer sections
+        main_content = soup.body
+        footer_content = soup.find('footer')
 
-        # Find main content and footer sections
-        main_content = driver.find_element(By.TAG_NAME, 'body')
-        footer_content = driver.find_elements(By.TAG_NAME, 'footer')
-        
         # Combine all anchor tags from main content and footer
-        anchor_tags = main_content.find_elements(By.TAG_NAME, 'a')
-        if footer_content:
-            anchor_tags += footer_content[0].find_elements(By.TAG_NAME, 'a')
+        anchor_tags = main_content.find_all('a') + (footer_content.find_all('a') if footer_content else [])
 
         # Set to store unique URLs
         unique_urls = set()
@@ -213,8 +207,7 @@ def scrape_site_links(url, max_links=8):
             if link_text_pattern.search(link_text):
                 # Extract the href attribute to get the link URL
                 link_url = a.get('href')
-                if link_url:
-
+                if link_url and not link_url.startswith("javascript:void(0)"):
                     # Complete relative URLs if necessary
                     link_url = urljoin(url, link_url)
 
