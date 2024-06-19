@@ -35,23 +35,29 @@ def generate_variants(property_name, max_variants=5):
     # Split the property name into words
     words = property_name.split()
     
-    # Remove specific words that should not be at the end
+    # Words to avoid at the end
     words_to_avoid_at_end = ['The', 'And']
+    
+    # Filter out words that should not be at the end
     filtered_words = [word for word in words if word not in words_to_avoid_at_end]
     
-    # Generate permutations of words
+    # Generate permutations of filtered words
     word_permutations = permutations(filtered_words)
     
     # Join permutations to form variant names
     variants = [' '.join(perm) for i, perm in enumerate(word_permutations) if i < max_variants]
     
-    # Add back the words at the end if they were filtered out
-    for i, variant in enumerate(variants):
+    # Adjust variants to avoid certain words at the end
+    final_variants = []
+    for variant in variants:
         for word in words_to_avoid_at_end:
-            if word in words:
-                variants[i] += f" {word}"
+            if variant.endswith(word):
+                variant = ' '.join([w for w in variant.split() if w != word])
+                variant = f"{variant} {word}"
+        final_variants.append(variant.strip())
     
-    return variants
+    return final_variants
+
 # Define function to scrape the first proper paragraph
 def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
     try:
