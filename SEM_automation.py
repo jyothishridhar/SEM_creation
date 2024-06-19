@@ -454,7 +454,7 @@ if st.button("Scrape Data"):
         Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
 
         df = pd.concat([header_df, paragraph_df, site_links_df, property_url_df, property_name_variants_df, negative_keywords_df, amenities_df], axis=1)
-
+        print("first dataframe",df)
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
@@ -482,6 +482,8 @@ if st.button("Scrape Data"):
 
         callouts_df = pd.DataFrame({'Callouts': Callouts})
         df = pd.concat([df, callouts_df], axis=1)
+        print("final data frame",df)
+        st.write("Final DataFrame:", df)
 
         # Define local file path
         local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
