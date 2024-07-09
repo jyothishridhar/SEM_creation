@@ -23,42 +23,42 @@ from io import StringIO
 import sqlite3
 import io
 
-# Database setup
-conn = sqlite3.connect('users.db')
-c = conn.cursor()
+# # Database setup
+# conn = sqlite3.connect('users.db')
+# c = conn.cursor()
 
-# Create table
-c.execute('''
-          CREATE TABLE IF NOT EXISTS users
-          ([username] TEXT, [password] TEXT)
-          ''')
-conn.commit()
+# # Create table
+# c.execute('''
+#           CREATE TABLE IF NOT EXISTS users
+#           ([username] TEXT, [password] TEXT)
+#           ''')
+# conn.commit()
 
-# Insert a sample user (this is just for demonstration; ideally, you'd have a registration process)
-c.execute('''
-          INSERT INTO users (username, password)
-          VALUES ('admin', 'password123')
-          ''')
-conn.commit()
+# # Insert a sample user (this is just for demonstration; ideally, you'd have a registration process)
+# c.execute('''
+#           INSERT INTO users (username, password)
+#           VALUES ('admin', 'password123')
+#           ''')
+# conn.commit()
 
-def verify_login(username, password):
-    c.execute('''
-              SELECT * FROM users WHERE username=? AND password=?
-              ''', (username, password))
-    return c.fetchone()
+# def verify_login(username, password):
+#     c.execute('''
+#               SELECT * FROM users WHERE username=? AND password=?
+#               ''', (username, password))
+#     return c.fetchone()
 
 
-def login():
-    st.title("Login")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type='password')
-    if st.button("Login"):
-        user = verify_login(username, password)
-        if user:
-            st.success("Logged in successfully!")
-            st.session_state.logged_in = True
-        else:
-            st.error("Invalid username or password")
+# def login():
+#     st.title("Login")
+#     username = st.text_input("Username")
+#     password = st.text_input("Password", type='password')
+#     if st.button("Login"):
+#         user = verify_login(username, password)
+#         if user:
+#             st.success("Logged in successfully!")
+#             st.session_state.logged_in = True
+#         else:
+#             st.error("Invalid username or password")
  
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
