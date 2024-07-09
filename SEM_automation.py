@@ -34,8 +34,11 @@ c = conn.cursor()
 # Create table if not exists
 c.execute('''
           CREATE TABLE IF NOT EXISTS users
-          ([username] TEXT, [password] TEXT)
+          (id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL,
+          password TEXT NOT NULL)
           ''')
+
 conn.commit()
 
 # Insert a sample user (for demonstration purposes; ideally use a registration process)
