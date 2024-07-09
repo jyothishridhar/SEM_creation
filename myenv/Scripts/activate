@@ -1,5 +1,13 @@
 # This file must be used with "source bin/activate" *from bash*
+<<<<<<< HEAD
 # you cannot run it directly
+=======
+<<<<<<< HEAD
+# You cannot run it directly
+=======
+# you cannot run it directly
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
+>>>>>>> f381b97f3c4908d545a6261474c75f6902f79357
 
 deactivate () {
     # reset old environment variables
@@ -14,9 +22,24 @@ deactivate () {
         unset _OLD_VIRTUAL_PYTHONHOME
     fi
 
+<<<<<<< HEAD
     # Call hash to forget past commands. Without forgetting
     # past commands the $PATH changes we made may not be respected
     hash -r 2> /dev/null
+=======
+<<<<<<< HEAD
+    # Call hash to forget past commands. Without forgetting
+    # past commands the $PATH changes we made may not be respected
+    hash -r 2> /dev/null
+=======
+    # This should detect bash and zsh, which have a hash command that must
+    # be called to get it to forget past commands.  Without forgetting
+    # past commands the $PATH changes we made may not be respected
+    if [ -n "${BASH:-}" -o -n "${ZSH_VERSION:-}" ] ; then
+        hash -r 2> /dev/null
+    fi
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
+>>>>>>> f381b97f3c4908d545a6261474c75f6902f79357
 
     if [ -n "${_OLD_VIRTUAL_PS1:-}" ] ; then
         PS1="${_OLD_VIRTUAL_PS1:-}"
@@ -35,8 +58,25 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
+<<<<<<< HEAD
 VIRTUAL_ENV="C:\Users\Jyothi.S\Documents\SEM_creation\myenv"
 export VIRTUAL_ENV
+=======
+<<<<<<< HEAD
+# on Windows, a path can contain colons and backslashes and has to be converted:
+if [ "$OSTYPE" = "cygwin" ] || [ "$OSTYPE" = "msys" ] ; then
+    # transform D:\path\to\venv to /d/path/to/venv on MSYS
+    # and to /cygdrive/d/path/to/venv on Cygwin
+    export VIRTUAL_ENV=$(cygpath "C:\SEM_creation\myenv")
+else
+    # use the path as-is
+    export VIRTUAL_ENV="C:\SEM_creation\myenv"
+fi
+=======
+VIRTUAL_ENV="C:\SEM creation\SEM_Automation\myenv"
+export VIRTUAL_ENV
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
+>>>>>>> f381b97f3c4908d545a6261474c75f6902f79357
 
 _OLD_VIRTUAL_PATH="$PATH"
 PATH="$VIRTUAL_ENV/Scripts:$PATH"
@@ -58,6 +98,21 @@ if [ -z "${VIRTUAL_ENV_DISABLE_PROMPT:-}" ] ; then
     export VIRTUAL_ENV_PROMPT
 fi
 
+<<<<<<< HEAD
 # Call hash to forget past commands. Without forgetting
 # past commands the $PATH changes we made may not be respected
 hash -r 2> /dev/null
+=======
+<<<<<<< HEAD
+# Call hash to forget past commands. Without forgetting
+# past commands the $PATH changes we made may not be respected
+hash -r 2> /dev/null
+=======
+# This should detect bash and zsh, which have a hash command that must
+# be called to get it to forget past commands.  Without forgetting
+# past commands the $PATH changes we made may not be respected
+if [ -n "${BASH:-}" -o -n "${ZSH_VERSION:-}" ] ; then
+    hash -r 2> /dev/null
+fi
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
+>>>>>>> f381b97f3c4908d545a6261474c75f6902f79357
