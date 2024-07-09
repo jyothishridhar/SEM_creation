@@ -25,6 +25,49 @@ import io
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils.dataframe import dataframe_to_rows
+import sqlite3
+
+# Database setup
+conn = sqlite3.connect('users.db')
+c = conn.cursor()
+
+# Create table
+c.execute('''
+          CREATE TABLE IF NOT EXISTS users
+          ([username] TEXT, [password] TEXT)
+          ''')
+conn.commit()
+
+# Insert a sample user (this is just for demonstration; ideally, you'd have a registration process)
+c.execute('''
+          INSERT INTO users (username, password)
+          VALUES ('admin', 'password123')
+          ''')
+conn.commit()
+
+# def verify_login(username, password):
+#     c.execute('''
+#               SELECT * FROM users WHERE username=? AND password=?
+#               ''', (username, password))
+#     return c.fetchone()
+
+def login():
+    st.title("Login")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type='password')
+    if st.button("Login"):
+        user = verify_login(username, password)
+        if user:
+            st.success("Logged in successfully!")
+            # Store session state or redirect to another page upon successful login
+            st.session_state.logged_in = True
+        else:
+            st.error("Invalid username or password")
+
+def verify_login(username, password):
+    c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    return c.fetchone()
+
 
  
 headers = {
@@ -550,3 +593,13 @@ if st.button("Scrape Data"):
             st.error(f"Error loading dataframe: {e}")
     else:
         st.warning("Please enter a URL.")
+
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
+
+if st.session_state.logged_in:
+    # Display content for logged-in users
+    st.write("Welcome to the application!")
+else:
+    # Display login form if not logged in
+    login()
