@@ -592,15 +592,8 @@ def main():
         else:
             st.warning("Please enter a URL.")
 
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
+def main():
+    login()
 
-    if st.session_state.logged_in:
-        # Display content for logged-in users
-        st.write("Welcome to the application!")
-    else:
-        # Display login form if not logged in
-        login()
-        
 if __name__ == "__main__":
-    main()        
+    main()    
