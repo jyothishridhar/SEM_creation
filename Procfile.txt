@@ -1,1 +1,6 @@
+<<<<<<< HEAD
 web: streamlit run SEM_automation.py --server.port=$PORT
+=======
+web: streamlit run SEM_automation.py --server.port=$PORT
+
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd

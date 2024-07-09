@@ -8,7 +8,11 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
+<<<<<<< HEAD
 set VIRTUAL_ENV=C:\SEM_creation\myenv
+=======
+set VIRTUAL_ENV=C:\SEM creation\SEM_Automation\myenv
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
 
 if not defined PROMPT set PROMPT=$P$G
 

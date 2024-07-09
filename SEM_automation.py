@@ -21,6 +21,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from io import StringIO
 import sqlite3
+import io
 
 # Database setup
 conn = sqlite3.connect('users.db')

@@ -4,4 +4,10 @@ beautifulsoup4
 requests
 selenium
 webdriver-manager
+<<<<<<< HEAD
 openpyxl
+=======
+openpyxl
+
+
+>>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
