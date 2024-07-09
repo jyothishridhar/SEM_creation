@@ -31,26 +31,26 @@ import sqlite3
 conn = sqlite3.connect('users.db')
 c = conn.cursor()
 
-# Create table
+# Create table if not exists
 c.execute('''
           CREATE TABLE IF NOT EXISTS users
           ([username] TEXT, [password] TEXT)
           ''')
 conn.commit()
 
-# Insert a sample user (this is just for demonstration; ideally, you'd have a registration process)
+# Insert a sample user (for demonstration purposes; ideally use a registration process)
 c.execute('''
           INSERT INTO users (username, password)
           VALUES ('admin', 'password123')
           ''')
 conn.commit()
 
-# def verify_login(username, password):
-#     c.execute('''
-#               SELECT * FROM users WHERE username=? AND password=?
-#               ''', (username, password))
-#     return c.fetchone()
+# Function to verify login credentials
+def verify_login(username, password):
+    c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    return c.fetchone()
 
+# Streamlit app login page
 def login():
     st.title("Login")
     username = st.text_input("Username")
@@ -61,13 +61,10 @@ def login():
             st.success("Logged in successfully!")
             # Store session state or redirect to another page upon successful login
             st.session_state.logged_in = True
+            return True
         else:
             st.error("Invalid username or password")
-
-def verify_login(username, password):
-    c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
-    return c.fetchone()
-
+            return False
 
  
 headers = {
