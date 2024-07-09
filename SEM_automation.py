@@ -47,7 +47,7 @@ def verify_login(username, password):
               ''', (username, password))
     return c.fetchone()
 
-# Define login function
+
 def login():
     st.title("Login")
     username = st.text_input("Username")
