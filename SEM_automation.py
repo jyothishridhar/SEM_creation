@@ -65,7 +65,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-
  
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -593,15 +592,15 @@ def main():
         else:
             st.warning("Please enter a URL.")
 
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
+    # if 'logged_in' not in st.session_state:
+    #     st.session_state.logged_in = False
 
-    if st.session_state.logged_in:
-        # Display content for logged-in users
-        st.write("Welcome to the application!")
-    else:
-        # Display login form if not logged in
-        login()
+    # if st.session_state.logged_in:
+    #     # Display content for logged-in users
+    #     st.write("Welcome to the application!")
+    # else:
+    #     # Display login form if not logged in
+    #     login()
         
 if __name__ == "__main__":
     main()        
