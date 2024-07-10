@@ -67,7 +67,7 @@ def verify_login(username, password):
 def add_user(username, password):
     with get_db_connection() as conn:
         c = conn.cursor()
-        c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+        c.execute('INSERT INTO users (username, password) VALUES (shri, Neona@0625)', (username, password))
         conn.commit()
   
 def login():
