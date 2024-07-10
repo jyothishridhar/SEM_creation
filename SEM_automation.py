@@ -436,17 +436,15 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, dept
 
 # Main function to run the app
 def main():
+
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
 
     if not st.session_state.logged_in:
         login_success = login()
         if login_success:
-            
             st.title("SEM Creation Template")
-            # # Input URL field
             url = st.text_input("Enter URL")
-            # Input for output file path
             output_file = st.text_input("Enter Header")
             
             # Input for depth
@@ -617,5 +615,4 @@ def main():
                     st.warning("Please enter a URL.")
     
 
-if __name__ == "__main__":
-    main()  
+
