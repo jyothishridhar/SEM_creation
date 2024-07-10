@@ -82,13 +82,10 @@ def login():
             st.error("Invalid username or password")
             return False
 
-
-
-
 # Main function to run the app
 def main():
     if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
+        st.session_state.logged_in = True
 
     if not st.session_state.logged_in:
         login_success = login()
@@ -443,12 +440,6 @@ def main():
                     scrape_links(link_url, 1)
 
                 return list(amenities_found)[:8]
-
-
-
-
-
-
 
             st.title("SEM Creation Template")
             # # Input URL field
