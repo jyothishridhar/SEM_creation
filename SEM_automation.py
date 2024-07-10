@@ -432,9 +432,9 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, dept
 
     return list(amenities_found)[:8]
 def main():
-    st.title("SEM Creation Template")
-    url = st.text_input("Enter URL")
-    output_file = st.text_input("Enter Header")
+    # st.title("SEM Creation Template")
+    # url = st.text_input("Enter URL")
+    # output_file = st.text_input("Enter Header")
                 
     # Input for depth
     depth = st.number_input("Enter depth", min_value=1, step=1)
