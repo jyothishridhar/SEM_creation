@@ -615,4 +615,5 @@ def main():
                     st.warning("Please enter a URL.")
     
 
-
+if __name__ == "__main__":
+    main()  
