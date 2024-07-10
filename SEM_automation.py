@@ -27,6 +27,7 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 import sqlite3
 
+# Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False  
 
@@ -41,11 +42,16 @@ def init_db():
             password TEXT NOT NULL)
         ''')
         conn.commit()
-        # Insert a sample user (for demonstration purposes; ideally use a registration process)
-        c.execute('''
-            INSERT OR IGNORE INTO users (username, password)
-            VALUES ('admin', 'neona@0625')
-        ''')
+
+        # Insert sample users (for demonstration purposes; ideally use a registration process)
+        sample_users = [
+            ('admin', 'neona@0625'),
+            ('shri', 'Neona@0625'),
+            # Add more users here
+        ]
+        
+        for user in sample_users:
+            c.execute('INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)', user)
         conn.commit()
 
 # Initialize database
@@ -63,13 +69,14 @@ def verify_login(username, password):
         c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
         return c.fetchone()
 
-# Function to add a new user
+# Function to add a new user (optional for registration)
 def add_user(username, password):
     with get_db_connection() as conn:
         c = conn.cursor()
-        c.execute('INSERT INTO users (username, password) VALUES (shri, Neona@0625)', (username, password))
+        c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
         conn.commit()
-  
+
+# Login function
 def login():
     st.title("Login")
     username = st.text_input("Username")
@@ -84,6 +91,7 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
+
         
       
 
