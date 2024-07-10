@@ -41,7 +41,7 @@ def init_db():
     # Insert a sample user (for demonstration purposes; ideally use a registration process)
     c.execute('''
               INSERT INTO users (username, password)
-              VALUES ('admin', 'password123')
+              VALUES ('adm', 'password')
               ''')
     conn.commit()
     return conn, c
