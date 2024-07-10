@@ -418,7 +418,8 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, dept
         scrape_links(link_url, 1)
  
     return list(amenities_found)[:8]
-def main(): 
+
+def sem_creation_template():
     st.title("SEM Creation Template")
     login_success = login()
 
@@ -595,8 +596,17 @@ def main():
         else:
             st.warning("Please enter a URL.")
 
+# Main function to run the app
 def main():
-    login()
+    if 'logged_in' not in st.session_state:
+        st.session_state.logged_in = False
+
+    if not st.session_state.logged_in:
+        login_success = login()
+        if login_success:
+            sem_creation_template()
+    else:
+        sem_creation_template()
 
 if __name__ == "__main__":
-    main()    
+    main()  

@@ -8,15 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-<<<<<<< HEAD
-set VIRTUAL_ENV=C:\Users\Jyothi.S\Documents\SEM_creation\myenv
-=======
-<<<<<<< HEAD
 set VIRTUAL_ENV=C:\SEM_creation\myenv
-=======
-set VIRTUAL_ENV=C:\SEM creation\SEM_Automation\myenv
->>>>>>> 7ef3263bf8ad3edda12247249d99ea6f271604bd
->>>>>>> f381b97f3c4908d545a6261474c75f6902f79357
 
 if not defined PROMPT set PROMPT=$P$G
 
