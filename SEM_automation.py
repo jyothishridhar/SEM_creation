@@ -29,7 +29,7 @@ import sqlite3
 
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False  
-    
+
 # Database setup
 def init_db():
     with sqlite3.connect('users.db') as conn:
@@ -617,7 +617,10 @@ else:
     # Render login page or redirect to login if not logged in
     login_success = login()
     if login_success:
-        st.title("SEM Creation Template")             
+        st.title("SEM Creation Template")  
+        url = st.text_input("Enter URL")
+        output_file = st.text_input("Enter Header")
+        depth = st.number_input("Enter depth", min_value=1, step=1)           
 
 
         
