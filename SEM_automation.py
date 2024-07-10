@@ -436,8 +436,8 @@ def main():
     # url = st.text_input("Enter URL")
     # output_file = st.text_input("Enter Header")
                 
-    # Input for depth
-    depth = st.number_input("Enter depth", min_value=1, step=1)
+    # # Input for depth
+    # depth = st.number_input("Enter depth", min_value=1, step=1)
 
     if st.button("Scrape Data"):
         if url:
@@ -617,6 +617,8 @@ if not st.session_state.logged_in:
         st.title("SEM Creation Template")
         url = st.text_input("Enter URL")
         output_file = st.text_input("Enter Header")
+        # Input for depth
+        depth = st.number_input("Enter depth", min_value=1, step=1)
     
             
     
