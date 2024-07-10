@@ -608,16 +608,16 @@ def main():
     # Main function to run the app
 
 
-        if 'logged_in' not in st.session_state:
-            st.session_state.logged_in = False
+if 'logged_in' not in st.session_state:
+    st.session_state.logged_in = False
 
-        if not st.session_state.logged_in:
-            login_success = login()
-            if login_success:
-                st.title("SEM Creation Template")
-                url = st.text_input("Enter URL")
-                output_file = st.text_input("Enter Header")
-            
+if not st.session_state.logged_in:
+    login_success = login()
+    if login_success:
+        st.title("SEM Creation Template")
+        url = st.text_input("Enter URL")
+        output_file = st.text_input("Enter Header")
+    
             
     
 
