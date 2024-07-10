@@ -29,31 +29,44 @@ import sqlite3
 
 # Database setup
 def init_db():
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('''
-              CREATE TABLE IF NOT EXISTS users
-              (id INTEGER PRIMARY KEY AUTOINCREMENT,
-              username TEXT NOT NULL,
-              password TEXT NOT NULL)
-              ''')
-    conn.commit()
-    # Insert a sample user (for demonstration purposes; ideally use a registration process)
-    c.execute('''
-              INSERT INTO users (username, password)
-              VALUES ('adm', 'password')
-              ''')
-    conn.commit()
-    return conn, c
+    with sqlite3.connect('users.db') as conn:
+        c = conn.cursor()
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS users
+            (id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL)
+        ''')
+        conn.commit()
+        # Insert a sample user (for demonstration purposes; ideally use a registration process)
+        c.execute('''
+            INSERT OR IGNORE INTO users (username, password)
+            VALUES ('admin', 'password123')
+        ''')
+        conn.commit()
 
-conn, c = init_db()
+# Initialize database
+init_db()
+
+# Function to get a new connection
+def get_db_connection():
+    conn = sqlite3.connect('users.db')
+    return conn
 
 # Function to verify login credentials
 def verify_login(username, password):
-    c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
-    return c.fetchone()
+    with get_db_connection() as conn:
+        c = conn.cursor()
+        c.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+        return c.fetchone()
 
-# Streamlit app login page
+# Function to add a new user
+def add_user(username, password):
+    with get_db_connection() as conn:
+        c = conn.cursor()
+        c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
+        conn.commit()
+  
 def login():
     st.title("Login")
     username = st.text_input("Username")
@@ -68,9 +81,7 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-        
-  
-        
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 }
