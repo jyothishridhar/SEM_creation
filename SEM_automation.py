@@ -431,188 +431,194 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=35, timeout=6, dept
         scrape_links(link_url, 1)
 
     return list(amenities_found)[:8]
-
-
-
-# Main function to run the app
 def main():
-
-    if 'logged_in' not in st.session_state:
-        st.session_state.logged_in = False
-
-    if not st.session_state.logged_in:
-        login_success = login()
-        if login_success:
-            st.title("SEM Creation Template")
-            url = st.text_input("Enter URL")
-            output_file = st.text_input("Enter Header")
-            
-            # Input for depth
-            depth = st.number_input("Enter depth", min_value=1, step=1)
-            
-            if st.button("Scrape Data"):
-                if url:
-                    # Assuming these functions are defined elsewhere
-                    ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
-                    header_text = extract_header_from_path(output_file) if output_file else None
-            
-                    amenities_found = scrape_amenities(url)
-                    print("amenities_found", amenities_found)
-            
-                    # Fetch amenities from link URLs
-                    site_links = scrape_site_links(url)
-                    if site_links:
-                        amenities_from_links = fetch_amenities_from_links(site_links)
-                    else:
-                        print("No site links found.")
-                        amenities_from_links = []
-                    print("amenities_from_links", amenities_from_links)
-            
-                    # Fetch amenities from subsequent links with specified depth
-                    amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=10, depth=depth)
-                    print("amenities_from_sub_links", amenities_from_sub_links)
-            
-                    # Combine all fetched amenities
-                    all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
-                    unique_amenities = list(set(all_amenities))[:8]
+    st.title("SEM Creation Template")
+    url = st.text_input("Enter URL")
+    output_file = st.text_input("Enter Header")
                 
-                    sub_links_processed = 0
-                    while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 35:
-                        max_sub_links = 35 - sub_links_processed  # Fetch amenities from remaining sub-links
-                        additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
-                        unique_amenities.extend(additional_amenities_from_sub_links)
-                        unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
-                        sub_links_processed += max_sub_links  # Update the number of sub-links processed
-                        if sub_links_processed >= 35:
-                            break  # Break out of the loop after checking 20 sub-links
+    # Input for depth
+    depth = st.number_input("Enter depth", min_value=1, step=1)
+
+    if st.button("Scrape Data"):
+        if url:
+            # Assuming these functions are defined elsewhere
+            ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
+            header_text = extract_header_from_path(output_file) if output_file else None
+
+            amenities_found = scrape_amenities(url)
+            print("amenities_found", amenities_found)
+
+            # Fetch amenities from link URLs
+            site_links = scrape_site_links(url)
+            if site_links:
+                amenities_from_links = fetch_amenities_from_links(site_links)
+            else:
+                print("No site links found.")
+                amenities_from_links = []
+            print("amenities_from_links", amenities_from_links)
+
+            # Fetch amenities from subsequent links with specified depth
+            amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links=10, depth=depth)
+            print("amenities_from_sub_links", amenities_from_sub_links)
+
+            # Combine all fetched amenities
+            all_amenities = amenities_found + amenities_from_links + amenities_from_sub_links
+            unique_amenities = list(set(all_amenities))[:8]
+        
+            sub_links_processed = 0
+            while 4 < len(unique_amenities) < 8 and len(site_links) > 0 and sub_links_processed < 35:
+                max_sub_links = 35 - sub_links_processed  # Fetch amenities from remaining sub-links
+                additional_amenities_from_sub_links = fetch_amenities_from_sub_links(site_links, max_sub_links)
+                unique_amenities.extend(additional_amenities_from_sub_links)
+                unique_amenities = list(set(unique_amenities))[:8]  # Limit to a maximum of 8 unique amenities
+                sub_links_processed += max_sub_links  # Update the number of sub-links processed
+                if sub_links_processed >= 35:
+                    break  # Break out of the loop after checking 20 sub-links
+
+            sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
+            # st.write("Fetched Amenities:", sorted_amenities)
+
+            sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x) if x in amenities_to_check else len(amenities_to_check))
+            # st.write("Fetched Amenities:", sorted_amenities)
+
+            property_name_variants = generate_variants(header_text) if header_text else []
+
+            negative_keywords = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
+
+            header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
+            paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
+            site_links_df = pd.DataFrame(site_links, columns=['Link URL', 'Link Text'])
+            property_url = pd.DataFrame({'property_url': [url]})
+            property_name_variants_df = pd.DataFrame({'Variants of Property Name': property_name_variants})
+            negative_keywords_df = pd.DataFrame(negative_keywords, columns=['Negative Keywords'])
+            amenities_df = pd.DataFrame({'Amenities': sorted_amenities})
+            Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
+
+            df = pd.concat([header_df, paragraph_df, site_links_df, property_url, property_name_variants_df, negative_keywords_df, amenities_df], axis=1)
+
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                page_content = response.text
+                water_keywords = ["swimming pool", "Water Park", "pool", "sea", "Salt Water Swimming Pool", "Pool & sea", "Poolside", "Pool area", "Pool deck", "Pool bar"]
+                balcony_keywords = ["balcony", "terrace", "veranda", "patio", "deck", "outdoor seating", "private balcony", "balcony view", "balcony access", "sun deck", "rooftop terrace", "lanai", "courtyard", "loggia", "open-air balcony", "French balcony", "wrap-around balcony", "overlooking balcony", "scenic balcony", "balcony suite"]
+                pet_keywords = ["pet-friendly", "pet-friendly policy", "dog-friendly", "cat-friendly", "pet-friendly hotel", "pet-friendly apartment", "pet-friendly rental", "pet-friendly room", "pet-friendly amenities", "pet-friendly patio", "pet-friendly park", "pet-friendly restaurant", "pet-friendly neighborhood", "pet-friendly community", "pet-friendly activities", "pet-friendly events", "pet-friendly travel", "pet-friendly vacations", "pet-friendly establishments"]
+
+                water_found = [keyword for keyword in water_keywords if re.search(keyword, page_content, re.IGNORECASE)]
+                balcony_found = [keyword for keyword in balcony_keywords if re.search(keyword, page_content, re.IGNORECASE)]
+                pet_found = [keyword for keyword in pet_keywords if re.search(keyword, page_content, re.IGNORECASE)]
+
+                print("Water-related keywords found:", water_found)
+                print("Balcony-related keywords found:", balcony_found)
+                print("Pet-friendly keywords found:", pet_found)
+
+                if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in water_keywords):
+                    Callouts.append("Water Park")
+                if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in balcony_keywords):
+                    Callouts.append("Balcony")
+                if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in pet_keywords):
+                    Callouts.append("Pet-friendly")
+            except Exception as e:
+                print(f"An error occurred while checking for water-related keywords: {e}")
+
+            callouts_df = pd.DataFrame({'Callouts': Callouts})
+            df = pd.concat([df, callouts_df], axis=1)
+
+            # Define local file path
+            local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
+            directory = os.path.dirname(local_file_path)
+
+            # Debug print to check the directory and path
+            st.write(f"Local file path: {local_file_path}")
+            st.write(f"Directory: {directory}")
+
+            # Ensure the directory exists if directory path is not empty
+            if directory and not os.path.exists(directory):
+                try:
+                    os.makedirs(directory)
+                    st.write(f"Directory created: {directory}")
+                except Exception as e:
+                    st.error(f"Error creating directory: {e}")
+
+            # Save to local path with error handling
+            try:
+                with pd.ExcelWriter(local_file_path, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Sheet1')
+                    workbook = writer.book
+                    worksheet = writer.sheets['Sheet1']
+                
+                    # Define header styles
+                    header_fill = PatternFill(start_color='C0C0C0', end_color='C0C0C0', fill_type='solid')
+                    header_font = Font(color='FFFFFF', bold=True)
+                    for cell in worksheet[1]:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                
+                    # Adjust column widths
+                    padding = 5
+                    specific_columns = {
+                        0: 15, 1: 15, 2: 15, 3: 40, 4: 18, 5: 30, 6: 22, 7: 30, 8: 18, 9: 15
+                    }
+                    for i, column in enumerate(worksheet.columns):
+                        if i in specific_columns:
+                            adjusted_width = specific_columns[i]
+                        else:
+                            max_length = 0
+                            column = [cell for cell in column]
+                            for cell in column:
+                                try:
+                                    if len(str(cell.value)) > max_length:
+                                        max_length = len(cell.value)
+                                except:
+                                    pass
+                            adjusted_width = (max_length + padding)
+                        worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+                st.success(f"File saved successfully at {local_file_path}")
+            except Exception as e:
+                st.error(f"Error saving file: {e}")
+
+            # Read the saved file back into a BytesIO buffer
+            buffer = io.BytesIO()
+            try:
+                with open(local_file_path, 'rb') as f:
+                    buffer.write(f.read())
+                buffer.seek(0)
+            except Exception as e:
+                st.error(f"Error reading file: {e}")
+
+            # Provide the file for download
+            st.download_button(
+                label="Download data as Excel",
+                data=buffer,
+                file_name="data.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+            buffer.seek(0)
+            try:
+                df_from_excel = pd.read_excel(buffer, sheet_name='Sheet1')
+                st.dataframe(df_from_excel)
+            except Exception as e:
+                st.error(f"Error loading dataframe: {e}")
+        else:
+            st.warning("Please enter a URL.")
+
+
+
+    # Main function to run the app
+
+
+        if 'logged_in' not in st.session_state:
+            st.session_state.logged_in = False
+
+        if not st.session_state.logged_in:
+            login_success = login()
+            if login_success:
+                st.title("SEM Creation Template")
+                url = st.text_input("Enter URL")
+                output_file = st.text_input("Enter Header")
             
-                    sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
-                    # st.write("Fetched Amenities:", sorted_amenities)
             
-                    sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x) if x in amenities_to_check else len(amenities_to_check))
-                    # st.write("Fetched Amenities:", sorted_amenities)
-            
-                    property_name_variants = generate_variants(header_text) if header_text else []
-            
-                    negative_keywords = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
-            
-                    header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
-                    paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
-                    site_links_df = pd.DataFrame(site_links, columns=['Link URL', 'Link Text'])
-                    property_url = pd.DataFrame({'property_url': [url]})
-                    property_name_variants_df = pd.DataFrame({'Variants of Property Name': property_name_variants})
-                    negative_keywords_df = pd.DataFrame(negative_keywords, columns=['Negative Keywords'])
-                    amenities_df = pd.DataFrame({'Amenities': sorted_amenities})
-                    Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
-            
-                    df = pd.concat([header_df, paragraph_df, site_links_df, property_url, property_name_variants_df, negative_keywords_df, amenities_df], axis=1)
-            
-                    try:
-                        response = requests.get(url, timeout=10)
-                        response.raise_for_status()
-                        page_content = response.text
-                        water_keywords = ["swimming pool", "Water Park", "pool", "sea", "Salt Water Swimming Pool", "Pool & sea", "Poolside", "Pool area", "Pool deck", "Pool bar"]
-                        balcony_keywords = ["balcony", "terrace", "veranda", "patio", "deck", "outdoor seating", "private balcony", "balcony view", "balcony access", "sun deck", "rooftop terrace", "lanai", "courtyard", "loggia", "open-air balcony", "French balcony", "wrap-around balcony", "overlooking balcony", "scenic balcony", "balcony suite"]
-                        pet_keywords = ["pet-friendly", "pet-friendly policy", "dog-friendly", "cat-friendly", "pet-friendly hotel", "pet-friendly apartment", "pet-friendly rental", "pet-friendly room", "pet-friendly amenities", "pet-friendly patio", "pet-friendly park", "pet-friendly restaurant", "pet-friendly neighborhood", "pet-friendly community", "pet-friendly activities", "pet-friendly events", "pet-friendly travel", "pet-friendly vacations", "pet-friendly establishments"]
-            
-                        water_found = [keyword for keyword in water_keywords if re.search(keyword, page_content, re.IGNORECASE)]
-                        balcony_found = [keyword for keyword in balcony_keywords if re.search(keyword, page_content, re.IGNORECASE)]
-                        pet_found = [keyword for keyword in pet_keywords if re.search(keyword, page_content, re.IGNORECASE)]
-            
-                        print("Water-related keywords found:", water_found)
-                        print("Balcony-related keywords found:", balcony_found)
-                        print("Pet-friendly keywords found:", pet_found)
-            
-                        if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in water_keywords):
-                            Callouts.append("Water Park")
-                        if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in balcony_keywords):
-                            Callouts.append("Balcony")
-                        if any(re.search(keyword, page_content, re.IGNORECASE) for keyword in pet_keywords):
-                            Callouts.append("Pet-friendly")
-                    except Exception as e:
-                        print(f"An error occurred while checking for water-related keywords: {e}")
-            
-                    callouts_df = pd.DataFrame({'Callouts': Callouts})
-                    df = pd.concat([df, callouts_df], axis=1)
-            
-                    # Define local file path
-                    local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
-                    directory = os.path.dirname(local_file_path)
-            
-                    # Debug print to check the directory and path
-                    st.write(f"Local file path: {local_file_path}")
-                    st.write(f"Directory: {directory}")
-            
-                    # Ensure the directory exists if directory path is not empty
-                    if directory and not os.path.exists(directory):
-                        try:
-                            os.makedirs(directory)
-                            st.write(f"Directory created: {directory}")
-                        except Exception as e:
-                            st.error(f"Error creating directory: {e}")
-            
-                    # Save to local path with error handling
-                    try:
-                        with pd.ExcelWriter(local_file_path, engine='openpyxl') as writer:
-                            df.to_excel(writer, index=False, sheet_name='Sheet1')
-                            workbook = writer.book
-                            worksheet = writer.sheets['Sheet1']
-                        
-                            # Define header styles
-                            header_fill = PatternFill(start_color='C0C0C0', end_color='C0C0C0', fill_type='solid')
-                            header_font = Font(color='FFFFFF', bold=True)
-                            for cell in worksheet[1]:
-                                cell.fill = header_fill
-                                cell.font = header_font
-                        
-                            # Adjust column widths
-                            padding = 5
-                            specific_columns = {
-                                0: 15, 1: 15, 2: 15, 3: 40, 4: 18, 5: 30, 6: 22, 7: 30, 8: 18, 9: 15
-                            }
-                            for i, column in enumerate(worksheet.columns):
-                                if i in specific_columns:
-                                    adjusted_width = specific_columns[i]
-                                else:
-                                    max_length = 0
-                                    column = [cell for cell in column]
-                                    for cell in column:
-                                        try:
-                                            if len(str(cell.value)) > max_length:
-                                                max_length = len(cell.value)
-                                        except:
-                                            pass
-                                    adjusted_width = (max_length + padding)
-                                worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
-                        st.success(f"File saved successfully at {local_file_path}")
-                    except Exception as e:
-                        st.error(f"Error saving file: {e}")
-            
-                    # Read the saved file back into a BytesIO buffer
-                    buffer = io.BytesIO()
-                    try:
-                        with open(local_file_path, 'rb') as f:
-                            buffer.write(f.read())
-                        buffer.seek(0)
-                    except Exception as e:
-                        st.error(f"Error reading file: {e}")
-            
-                    # Provide the file for download
-                    st.download_button(
-                        label="Download data as Excel",
-                        data=buffer,
-                        file_name="data.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-            
-                    buffer.seek(0)
-                    try:
-                        df_from_excel = pd.read_excel(buffer, sheet_name='Sheet1')
-                        st.dataframe(df_from_excel)
-                    except Exception as e:
-                        st.error(f"Error loading dataframe: {e}")
-                else:
-                    st.warning("Please enter a URL.")
     
 
 if __name__ == "__main__":
