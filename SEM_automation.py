@@ -47,6 +47,7 @@ def init_db():
         sample_users = [
             ('admin', 'neona@0625'),
             ('shri', 'Neona@0625'),
+            ('jyo','Rocky@000'),
             # Add more users here
         ]
         
