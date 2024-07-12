@@ -77,6 +77,11 @@ def add_user(username, password):
         c.execute('INSERT INTO users (username, password) VALUES (?, ?)', (username, password))
         conn.commit()
 
+# Logout function
+def logout():
+    st.session_state.logged_in = False
+    st.success("Logged out successfully!")        
+
 # Login function
 def login():
     st.title("Login")
@@ -621,6 +626,10 @@ if st.session_state.logged_in:
                 st.error(f"Error loading dataframe: {e}")
         else:
             st.warning("Please enter a URL.")
+
+    # Logout button
+    if st.button("Logout"):
+        logout()        
 
 else:
     # Render login page or redirect to login if not logged in
