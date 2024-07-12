@@ -30,6 +30,8 @@ import sqlite3
 # Initialize session state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False  
+if 'password_visible' not in st.session_state:
+    st.session_state.password_visible = False
 
 # Database setup
 def init_db():
@@ -98,7 +100,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-      
 
 headers = {
     
