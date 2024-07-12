@@ -86,8 +86,10 @@ def login():
     if 'password_visible' not in st.session_state:
         st.session_state.password_visible = False
 
-    password_type = 'text' if st.session_state.password_visible else 'password'
-    password = st.text_input("Password", type=password_type)
+    if st.session_state.password_visible:
+        password = st.text_area("Password", type='default')
+    else:
+        password = st.text_input("Password", type='password')
     
     toggle_label = "Hide Password" if st.session_state.password_visible else "Show Password"
     if st.button(toggle_label):
@@ -102,7 +104,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-      
 
 headers = {
     
