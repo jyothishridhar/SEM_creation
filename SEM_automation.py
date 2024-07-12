@@ -81,19 +81,7 @@ def add_user(username, password):
 def login():
     st.title("Login")
     username = st.text_input("Username")
-    
-    # Toggle password visibility
-    if 'password_visible' not in st.session_state:
-        st.session_state.password_visible = False
-
-    if st.session_state.password_visible:
-        password = st.text_area("Password")
-    else:
-        password = st.text_input("Password", type='password')
-    
-    toggle_label = "Hide Password" if st.session_state.password_visible else "Show Password"
-    if st.button(toggle_label):
-        st.session_state.password_visible = not st.session_state.password_visible
+    password = st.text_input("Password", type='password')
     
     if st.button("Login"):
         user = verify_login(username, password)
@@ -104,6 +92,9 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
+
+        
+      
 
 headers = {
     
