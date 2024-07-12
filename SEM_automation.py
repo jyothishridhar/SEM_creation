@@ -31,9 +31,6 @@ import sqlite3
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False  
 
-if 'show_password' not in st.session_state:
-    st.session_state.show_password = False  
-
 # Database setup
 def init_db():
     with sqlite3.connect('users.db') as conn:
@@ -84,13 +81,13 @@ def add_user(username, password):
 def login():
     st.title("Login")
     username = st.text_input("Username")
-
-    # Toggle password visibility
-    password = st.text_input("Password", type='text' if st.session_state.show_password else 'password')
-    toggle_password_visibility = st.button("Hide" if st.session_state.show_password else "Show")
-
-    if toggle_password_visibility:
-        st.session_state.show_password = not st.session_state.show_password
+    
+    password_type = 'password' if not st.session_state.password_visible else 'text'
+    password = st.text_input("Password", type=password_type)
+    
+    password_toggle_icon = "👁️" if not st.session_state.password_visible else "🙈"
+    if st.button(password_toggle_icon):
+        st.session_state.password_visible = not st.session_state.password_visible
 
     if st.button("Login"):
         user = verify_login(username, password)
@@ -101,7 +98,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-        
       
 
 headers = {
