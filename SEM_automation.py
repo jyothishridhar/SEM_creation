@@ -87,7 +87,7 @@ def login():
         st.session_state.password_visible = False
 
     if st.session_state.password_visible:
-        password = st.text_area("Password", type='default')
+        password = st.text_area("Password")
     else:
         password = st.text_input("Password", type='password')
     
