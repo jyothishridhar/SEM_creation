@@ -26,6 +26,9 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 import sqlite3
+from io import BytesIO
+from openpyxl import Workbook
+from openpyxl.styles import PatternFill, Font
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
@@ -557,9 +560,9 @@ if st.session_state.logged_in:
                 
                 st.write("Final DataFrame:", df)
 
-                # Define local file path
-                local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
-                directory = os.path.dirname(local_file_path)
+                # # Define local file path
+                # local_file_path = "C:\\SEM_automation_Excel_Reports\\data.xlsx"
+                # directory = os.path.dirname(local_file_path)
 
                 # Debug print to check the directory and path
                 # st.write(f"Local file path: {local_file_path}")
@@ -567,12 +570,57 @@ if st.session_state.logged_in:
 
                 # Ensure the directory exists if directory path is not empty
                 # Ensure the directory exists if directory path is not empty
-                if directory and not os.path.exists(directory):
-                    os.makedirs(directory)
-                    st.write(f"Directory created: {directory}")
+                # if directory and not os.path.exists(directory):
+                #     os.makedirs(directory)
+                #     st.write(f"Directory created: {directory}")
 
-                # Save DataFrame to local Excel file
-                with pd.ExcelWriter(local_file_path, engine='openpyxl') as writer:
+                # # Save DataFrame to local Excel file
+                # with pd.ExcelWriter(local_file_path, engine='openpyxl') as writer:
+                #     df.to_excel(writer, index=False, sheet_name='Sheet1')
+                #     workbook = writer.book
+                #     worksheet = writer.sheets['Sheet1']
+
+                #     # Define header styles
+                #     header_fill = PatternFill(start_color='C0C0C0', end_color='C0C0C0', fill_type='solid')
+                #     header_font = Font(color='FFFFFF', bold=True)
+                #     for cell in worksheet[1]:
+                #         cell.fill = header_fill
+                #         cell.font = header_font
+
+                #     # Adjust column widths
+                #     padding = 5
+                #     specific_columns = {
+                #         0: 15, 1: 15, 2: 15, 3: 40, 4: 18, 5: 30, 6: 22, 7: 30, 8: 18, 9: 15
+                #     }
+                #     for i, column in enumerate(worksheet.columns):
+                #         if i in specific_columns:
+                #             adjusted_width = specific_columns[i]
+                #         else:
+                #             max_length = 0
+                #             column = [cell for cell in column]
+                #             for cell in column:
+                #                 try:
+                #                     if len(str(cell.value)) > max_length:
+                #                         max_length = len(cell.value)
+                #                 except:
+                #                     pass
+                #             adjusted_width = (max_length + padding)
+                #         worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
+
+                # st.success(f"File saved successfully at {local_file_path}")
+
+                # # Provide download button for the Excel file
+                # st.download_button(
+                #     label="Download data as Excel",
+                #     data=open(local_file_path, 'rb'),
+                #     file_name="data.xlsx",
+                #     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                # )
+
+                def save_df_to_excel(df):
+                    output = BytesIO()
+                    writer = pd.ExcelWriter(output, engine='openpyxl')
+                    
                     df.to_excel(writer, index=False, sheet_name='Sheet1')
                     workbook = writer.book
                     worksheet = writer.sheets['Sheet1']
@@ -604,13 +652,26 @@ if st.session_state.logged_in:
                             adjusted_width = (max_length + padding)
                         worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
 
-                st.success(f"File saved successfully at {local_file_path}")
+                    writer.save()
+                    processed_data = output.getvalue()
+                    return processed_data
 
-                # Provide download button for the Excel file
+                # # Sample DataFrame
+                # data = {
+                #     'A': [1, 2, 3],
+                #     'B': [4, 5, 6],
+                #     'C': [7, 8, 9],
+                # }
+                # df = pd.DataFrame(data)
+
+                # Save DataFrame to Excel and get the byte data
+                excel_data = save_df_to_excel(df)
+
+                # Create a download button
                 st.download_button(
-                    label="Download data as Excel",
-                    data=open(local_file_path, 'rb'),
-                    file_name="data.xlsx",
+                    label="Download Excel file",
+                    data=excel_data,
+                    file_name="formatted_data.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
 
