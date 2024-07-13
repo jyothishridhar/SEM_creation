@@ -652,17 +652,10 @@ if st.session_state.logged_in:
                             adjusted_width = (max_length + padding)
                         worksheet.column_dimensions[column[0].column_letter].width = adjusted_width
 
-                    writer.save()
+                    writer._save()
                     processed_data = output.getvalue()
                     return processed_data
-
-                # # Sample DataFrame
-                # data = {
-                #     'A': [1, 2, 3],
-                #     'B': [4, 5, 6],
-                #     'C': [7, 8, 9],
-                # }
-                # df = pd.DataFrame(data)
+                
 
                 # Save DataFrame to Excel and get the byte data
                 excel_data = save_df_to_excel(df)
@@ -674,7 +667,6 @@ if st.session_state.logged_in:
                     file_name="formatted_data.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                 )
-
             except Exception as e:
                 st.error(f"Error occurred: {e}")
 
