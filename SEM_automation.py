@@ -86,33 +86,12 @@ def logout():
     st.session_state.logged_in = False
     st.success("Logged out successfully!")
 
-# Custom JavaScript for password toggle
-password_toggle_js = """
-<script>
-function togglePasswordVisibility() {
-    var passwordField = document.getElementById("password_field");
-    var toggleButton = document.getElementById("toggle_button");
-    if (passwordField.type === "password") {
-        passwordField.type = "text";
-        toggleButton.textContent = "Hide";
-    } else {
-        passwordField.type = "password";
-        toggleButton.textContent = "Show";
-    }
-}
-</script>
-"""
-
 # Login function
 def login():
     st.title("Login")
     username = st.text_input("Username")
-
-    # Password field with eye icon functionality
-    st.markdown(password_toggle_js, unsafe_allow_html=True)
-    password = st.text_input("Password", type='password', key='password_field')
-    st.markdown('<button id="toggle_button" onclick="togglePasswordVisibility()">Show</button>', unsafe_allow_html=True)
-
+    password = st.text_input("Password", type='password')
+    
     if st.button("Login"):
         user = verify_login(username, password)
         if user:
@@ -123,6 +102,8 @@ def login():
             st.error("Invalid username or password")
             return False
 
+        
+      
 
 headers = {
     
