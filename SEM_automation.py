@@ -463,27 +463,34 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
 
 
 if st.session_state.logged_in:
-    st.markdown(
-        """
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>SEM Creation Template</h1>
-            <button onclick="logout()" style="font-weight: bold; background-color: #f44336; color: white; border: none; padding: 10px 20px; cursor: pointer;">Logout</button>
-        </div>
-        <script>
-        function logout() {
-            var event = new CustomEvent("logout");
-            window.dispatchEvent(event);
-        }
-        </script>
-        """,
-        unsafe_allow_html=True
-    )
-
-    if st.button("Logout", key="logout_button", on_click=logout):
-        logout()
+    # Render SEM Creation Template or other content
+    col1, col2, col3 = st.columns([1, 6, 1])
+    with col1:
+        st.write("")
+    with col2:
+        st.title("SEM Creation Template")
+    with col3:
+        st.markdown(
+            """
+            <style>
+            .logout-button {
+                background-color: #f44336;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                cursor: pointer;
+                font-weight: bold;
+                float: right;
+            }
+            </style>
+            """, 
+            unsafe_allow_html=True
+        )
+        if st.button("Logout", key="logout_button", on_click=logout):
+            logout()
 
     # Render SEM Creation Template or other content
-    st.title("SEM Creation Template")
+    # st.title("SEM Creation Template")
     url = st.text_input("Enter URL")
     output_file = st.text_input("Enter Header")
     depth = st.number_input("Enter depth", min_value=1, step=1)
