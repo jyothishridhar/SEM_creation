@@ -251,7 +251,7 @@ def scrape_site_links(url, max_links=8):
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
             "Premises", "Establishment", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", 
-            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers"
+            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials"
         ]
 
         # Relevant words related to specific categories
@@ -263,7 +263,7 @@ def scrape_site_links(url, max_links=8):
         relevant_Dining_words = ["All Dining & Bar Facilities", "Restaurant", "Food & Beverage Amenities", "Dining", "Gastronomy", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", "Café", "Bistro", "In Room dining", "Private Dining"]
         relevant_Location_words = ["Location", "Locations", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", "Premises", "Establishment"]
         relevant_Rooms_words = ["Rooms", "Room", "Rooms & Suites", "Rooms and Suites", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites"]
-        relevant_special_offer_words = ["special_offer", "offers", "offer", "Specials"]
+        relevant_special_offer_words = ["special_offer", "offers", "offer", "Specials","Vacation Specials"]
         relevant_Accommodation_words = ["Explore All Accommodations", "Accommodation", "stay"]
         relevant_specials_packages_words = ["Daily Specials", "Weekend Specials", "Holiday Specials", "Promotional Specials", "Family Packages", "Couples Packages", "Party Packages", "Event Packages", "Set Menus"]
 
