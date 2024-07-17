@@ -463,33 +463,25 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
 
 
 if st.session_state.logged_in:
-    # Custom CSS for the logout button
     st.markdown(
         """
-        <style>
-        .logout-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-weight: bold;
-            color: white;
-            background-color: #ff4b4b;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>SEM Creation Template</h1>
+            <button onclick="logout()" style="font-weight: bold; background-color: #f44336; color: white; border: none; padding: 10px 20px; cursor: pointer;">Logout</button>
+        </div>
+        <script>
+        function logout() {
+            var event = new CustomEvent("logout");
+            window.dispatchEvent(event);
         }
-        </style>
+        </script>
         """,
-        unsafe_allow_html=True,
+        unsafe_allow_html=True
     )
-    
-    # Render the logout button using HTML
-    components.html(
-        """
-        <button class="logout-button" onclick="window.location.reload();">Logout</button>
-        """,
-        height=50,
-    )
+
+    if st.button("Logout", key="logout_button", on_click=logout):
+        logout()
+
     # Render SEM Creation Template or other content
     st.title("SEM Creation Template")
     url = st.text_input("Enter URL")
@@ -644,9 +636,9 @@ if st.session_state.logged_in:
         else:
             st.warning("Please enter a URL.")
 
-    # Logout button
-    if st.button("Logout"):
-        logout()      
+    # # Logout button
+    # if st.button("Logout"):
+    #     logout()      
 
 else:
     # Render login page or redirect to login if not logged in
