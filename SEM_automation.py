@@ -251,7 +251,7 @@ def scrape_site_links(url, max_links=8):
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
             "Premises", "Establishment", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", 
-            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials"
+            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials","Park Tickets"
         ]
 
         # Relevant words related to specific categories
