@@ -464,7 +464,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
 
 if st.session_state.logged_in:
     # Render SEM Creation Template or other content
-    st.title("SEM Creation Template")
+    # st.title("SEM Creation Template")
     url = st.text_input("Enter URL")
     output_file = st.text_input("Enter Header")
     depth = st.number_input("Enter depth", min_value=1, step=1)
@@ -617,7 +617,9 @@ if st.session_state.logged_in:
         else:
             st.warning("Please enter a URL.")
 
-         
+    # Logout button
+    if st.button("Logout"):
+        logout()      
 
 else:
     # Render login page or redirect to login if not logged in
@@ -626,10 +628,7 @@ else:
         st.title("SEM Creation Template")  
         url = st.text_input("Enter URL")
         output_file = st.text_input("Enter Header")
-        depth = st.number_input("Enter depth", min_value=1, step=1)      
-             
-# Logout button
-    if st.button("Logout"):
-        logout() 
+        depth = st.number_input("Enter depth", min_value=1, step=1)           
+
 
         
