@@ -29,6 +29,7 @@ import sqlite3
 from io import BytesIO
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font
+import streamlit.components.v1 as components
 
 # Initialize session state
 if 'logged_in' not in st.session_state:
@@ -462,6 +463,33 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
 
 
 if st.session_state.logged_in:
+    # Custom CSS for the logout button
+    st.markdown(
+        """
+        <style>
+        .logout-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            color: white;
+            background-color: #ff4b4b;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    
+    # Render the logout button using HTML
+    components.html(
+        """
+        <button class="logout-button" onclick="window.location.reload();">Logout</button>
+        """,
+        height=50,
+    )
     # Render SEM Creation Template or other content
     st.title("SEM Creation Template")
     url = st.text_input("Enter URL")
