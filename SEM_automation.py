@@ -464,7 +464,7 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
 
 if st.session_state.logged_in:
     # Render SEM Creation Template or other content
-    # st.title("SEM Creation Template")
+    st.title("SEM Creation Template")
     url = st.text_input("Enter URL")
     output_file = st.text_input("Enter Header")
     depth = st.number_input("Enter depth", min_value=1, step=1)
