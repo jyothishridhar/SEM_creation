@@ -91,15 +91,20 @@ def login():
     st.title("Login")
     username = st.text_input("Username")
     
-    # Apply custom CSS to hide the eye icon
-    hide_eye_icon_css = """
-    <style>
-    .stTextInput [type="password"] + div + button {
-        display: none;
-    }
-    </style>
+    # JavaScript to hide the eye icon for the password field
+    hide_eye_icon_js = """
+    <script>
+    const password_fields = document.querySelectorAll('[type="password"]');
+    password_fields.forEach(field => {
+        const parent_div = field.parentElement;
+        const eye_icon = parent_div.querySelector('button');
+        if (eye_icon) {
+            eye_icon.style.display = 'none';
+        }
+    });
+    </script>
     """
-    st.markdown(hide_eye_icon_css, unsafe_allow_html=True)
+    st.markdown(hide_eye_icon_js, unsafe_allow_html=True)
     
     password = st.text_input("Password", type='password')
     
@@ -112,8 +117,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-        
-      
 
 headers = {
     
