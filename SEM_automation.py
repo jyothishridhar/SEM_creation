@@ -90,6 +90,17 @@ def logout():
 def login():
     st.title("Login")
     username = st.text_input("Username")
+    
+    # Apply custom CSS to hide the eye icon
+    hide_eye_icon_css = """
+    <style>
+    .stTextInput [type="password"] + div + button {
+        display: none;
+    }
+    </style>
+    """
+    st.markdown(hide_eye_icon_css, unsafe_allow_html=True)
+    
     password = st.text_input("Password", type='password')
     
     if st.button("Login"):
@@ -101,7 +112,6 @@ def login():
         else:
             st.error("Invalid username or password")
             return False
-
         
       
 
