@@ -15,7 +15,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from requests.exceptions import Timeout
-import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from openpyxl import Workbook
@@ -27,7 +26,6 @@ from openpyxl.styles import PatternFill, Font
 from openpyxl.utils.dataframe import dataframe_to_rows
 import sqlite3
 from io import BytesIO
-from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font
 import streamlit.components.v1 as components
 
@@ -126,79 +124,111 @@ def generate_variants(property_name, max_variants=5):
     return variants
 
 
+
+
 # Define function to scrape the first proper paragraph
 def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
     try:
-    
-        options = webdriver.ChromeOptions()
-        options.add_argument('--no-sandbox')
-        options.add_argument('--window-size=1420,1080')
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
+        options = Options()
+        options.add_argument("--headless")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("start-maximized")
+        
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    
-    
+       
         for attempt in range(retries):
             try:
                 driver.get(url)
-                time.sleep(4)
-            
+
+                time.sleep(10)
+
+                #  Handle cookie consent button
+                try:
+                    WebDriverWait(driver, wait_time).until(
+                        EC.presence_of_element_located((By.XPATH, '//button[contains(text(), "Accept All") or contains(text(), "Allow All") or contains(text(), "Agree All" or contains(text(), "Accept and close")]'))
+                    )
+                    consent_button = driver.find_element(By.XPATH, '//button[contains(text(), "Accept All") or contains(text(), "Allow All") or contains(text(), "Agree All")]')
+                    consent_button.click()
+                    print("Cookie consent button clicked.")
+                except Exception as e:
+                    print(f"No cookie consent button found or failed to click: {e}")
+                
+               
                 # Use explicit wait to ensure the page has fully rendered
                 WebDriverWait(driver, wait_time).until(
                     EC.presence_of_element_located((By.TAG_NAME, 'p'))
                 )
-            
+               
                 # Get the page source
                 page_source = driver.page_source
-            
+               
                 # Parse the HTML with BeautifulSoup
                 soup = BeautifulSoup(page_source, 'html.parser')
                 print("Soup object fetched successfully.")  # Log to check if fetching is successful
-            
+               
                 # Find all <p> tags
                 p_tags = soup.find_all('p')
-                print(f"Found <p> tags: {len(p_tags)}")
-            
+                # print("Found <p> tags: p_tags",p_tags)
+               
                 # Initialize a variable to store the text of the first two paragraphs
                 first_two_paragraphs_text = ''
                 paragraph_count = 0
-            
+                seen_paragraphs = set() 
+
+                # Define keywords to exclude
+                exclusion_keywords = ['cookie', 'privacy', 'consent', 'policy', 'advertising', 'tracking']
+               
                 # Find the text of the first two proper paragraphs
                 for p in p_tags:
                     paragraph = p.text.strip()
                     print(f"Paragraph {paragraph_count + 1}: {paragraph[:100]}...")  # Print the first 100 characters
-                    if len(paragraph) > 150:  # Check if the paragraph is not empty
-                        first_two_paragraphs_text += paragraph + ' '  # Add space between paragraphs
+                    if len(paragraph) > 50 and not any(keyword in paragraph.lower() for keyword in exclusion_keywords):
+                        first_two_paragraphs_text += paragraph + ' '  
+                        seen_paragraphs.add(paragraph)
                         paragraph_count += 1
-                        if paragraph_count == 3:  # Stop after finding the first two paragraphs
+                        print(f"Added Paragraph {paragraph_count}: {paragraph[:100]}...")
+                        if paragraph_count == 4:  
                             break
-            
-                if paragraph_count < 1:
-                    raise ValueError("Less than two proper paragraphs found.")
-            
+
+                if paragraph_count < 4 and paragraph_count > 0:
+                    print("Less than four proper paragraphs found, but adding the available ones.")
+                elif paragraph_count == 0:
+                    raise ValueError("No proper paragraphs found.")
+
+                # Log the final text before splitting into sentences
+                print(f"First two proper paragraphs text: {first_two_paragraphs_text}")
+
                 # Split the text of the first two paragraphs into sentences
                 sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', first_two_paragraphs_text)
-            
-                # Ensure we have at least four sentences
-                while len(sentences) < 4:
-                    sentences.append('')  # Append empty strings if necessary
-            
-                # Return the first two sentences and next two sentences
-                return sentences[0] + ' ' + sentences[1], sentences[2] + ' ' + sentences[3]
-        
+
+                # Remove duplicate sentences
+                seen_sentences = set()
+                unique_sentences = []
+                for sentence in sentences:
+                    if sentence not in seen_sentences:
+                        unique_sentences.append(sentence)
+                        seen_sentences.add(sentence)
+
+                # Log the sentences to debug
+                print(f"Unique Sentences: {unique_sentences}")
+
+                # Ensure we have at least eight sentences
+                while len(unique_sentences) < 8:
+                    unique_sentences.append('')  # Append empty strings if necessary
+
+                return unique_sentences[0] + ' ' + unique_sentences[1] + ' ' +unique_sentences[2] + ' ' + unique_sentences[3], unique_sentences[4] + ' ' + unique_sentences[5] + ' ' +unique_sentences[6] + ' ' + unique_sentences[7]
+
             except Exception as e:
                 print(f"Attempt {attempt + 1} failed with error: {e}")
                 time.sleep(5)  # Wait before retrying
-            
-        print("All attempts failed. Unable to scrape the paragraphs.")
-        return None, None
 
-    # finally:
-    #     driver.quit()
-    except Exception as e:
-        # print("An error occurred while extracting header from file path:", e)
-        return None
+        print("All attempts failed. Unable to scrape the paragraphs.")
+        return None, None, None, None
+    
+    finally:
+        driver.quit()
 
 def extract_header_from_path(output_file):
     try:
@@ -251,7 +281,8 @@ def scrape_site_links(url, max_links=8):
             "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", 
             "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", 
             "Premises", "Establishment", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", 
-            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials","Park Tickets"
+            "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials","Park Tickets","Meets us","Stay with us", "Find us","Instagram",
+            "Our Hotel","Location","Promotions"
         ]
 
         # Relevant words related to specific categories
@@ -274,7 +305,16 @@ def scrape_site_links(url, max_links=8):
             link_text = a.get_text(strip=True)
             link_url = a.get('href')
 
-            if link_url and not link_url.startswith(("javascript:", "#", "mailto:", "tel:")):
+            # Check if the URL is valid
+            if link_url:
+                # If it's a fragment identifier, prepend the base URL
+                if link_url.startswith("#"):
+                    link_url = url + link_url
+                
+                # Skip invalid URLs
+                if link_url.startswith(("javascript:", "mailto:", "tel:")):
+                    continue
+                
                 link_url = urljoin(url, link_url)
 
                 if link_url not in unique_urls:
@@ -352,36 +392,67 @@ def scrape_similar_hotels(google_url, header_text):
          # Debug print to check the initial negative keywords
         print("Negative Keywords before filtering:", negative_keywords)    
             
-        # Remove 'hotel' and 'resort' from the keywords
-        filtered_negative_keywords  = [keyword.replace(' Hotel', '').replace('Resort', '').strip() for keyword in negative_keywords]
+        # # Remove 'hotel' and 'resort' from the keywords
+        # filtered_negative_keywords  = [keyword.replace(' Hotel', '').replace('Resort', '').strip() for keyword in negative_keywords]
         
+        # # Debug print to check the filtered negative keywords
+        # print("Negative Keywords after filtering:", filtered_negative_keywords)
+        
+        # Split the header text into individual words
+        header_words = set(header_text.lower().split())
+
+        # Filter out "Hotel" and "Resort" from the header words
+        filtered_header_words = {word for word in header_words if word not in ['hotel', 'resort']}
+
+        # Remove keywords containing words from filtered header words
+        filtered_negative_keywords  = [keyword for keyword in negative_keywords if not any(word in keyword.lower().split() for word in filtered_header_words)]
         # Debug print to check the filtered negative keywords
         print("Negative Keywords after filtering:", filtered_negative_keywords)
+
+        # Remove 'hotel' and 'resort' from the keywords
+        final_negative_keywords = [keyword.replace('Hotel', '').replace('Resort', '').strip() for keyword in filtered_negative_keywords]
+        
+        # Debug print to check the final negative keywords
+        print("Negative Keywords after removing header words:", final_negative_keywords)
     
- 
         # Close the browser
         driver.quit()
- 
-        # print("Negative Keywords:", negative_keywords)
-        return filtered_negative_keywords 
- 
+
+        return final_negative_keywords 
+
     except Exception as e:
         print("An error occurred while scraping similar hotels:", e)
         return None
  
    
-# Define the list of amenities to check for
-amenities_to_check = [
-    "Swimming Pool","Poolside","Pool area","Pool deck","Pool bar","Beach Access","Spa Services","Gourmet Dining","Free Breakfast","Free Parking","Fitness Center",
-    "Room Service","Daily Housekeeping","Free WiFi","Public Wi-Fi","Wi-Fi Internet Access","Wi-Fi","Business Center","Air-conditioning","Air Conditioning & Heating","Air Conditioning",
-    "Laundry Services","Easy Check In","Express Check Out","Phone","Hair Dryer","Bicycle Rental","Balcony","Balcony/terrace","Lift","Iron & Ironing Board","Bonfires","Kitchenette"
-    
-]
+# Define the categorized amenities
+amenities_to_check = {
+    "Swimming Pool": ["Swimming Pool", "Poolside", "Pool area", "Pool deck", "Pool bar"],
+    "Beach Access": ["Beach Access"],
+    "Spa Services": ["Spa Services"],
+    "Gourmet Dining": ["Gourmet Dining"],
+    "Free Breakfast": ["Free Breakfast","Breakfast"],
+    "Free Parking": ["Free Parking","Separate parking"],
+    "Fitness Center": ["Fitness Center","Fitness Space"],
+    "Room Service": ["Room Service"],
+    "Daily Housekeeping": ["Daily Housekeeping"],
+    "Free WiFi": ["Free WiFi", "Public Wi-Fi", "Wi-Fi Internet Access", "Wi-Fi"],
+    "Business Center": ["Business Center"],
+    "Air Conditioning": ["A/C", "Air-conditioning", "Air Conditioning & Heating", "Air Conditioning"],
+    "Laundry Services": ["Laundry Services","Outsourced Laundry"],
+    "Easy Check In/Out": ["Easy Check In", "Express Check Out"],
+    "Phone": ["Phone"],
+    "Hair Dryer": ["Hair Dryer"],
+    "Bicycle Rental": ["Bicycle Rental"],
+    "Balcony": ["Balcony", "Balcony/terrace"],
+    "Lift": ["Lift"],
+    "Iron & Ironing Board": ["Iron & Ironing Board"]
+}
 
 # Define a custom exception for timeout
 class TimeoutException(Exception):
     pass
- 
+
 def scrape_amenities(url):
     try:
         # Check if the URL is a tel: or mailto: link
@@ -399,16 +470,18 @@ def scrape_amenities(url):
  
         # Find amenities
         found_amenities = []
-        for amenity in amenities_to_check:
-            if re.search(amenity, all_text, re.IGNORECASE):
-                found_amenities.append(amenity)
+        for amenity, keywords in amenities_to_check.items():
+            for keyword in keywords:
+                if re.search(re.escape(keyword), all_text, re.IGNORECASE):
+                    if amenity not in found_amenities:
+                        found_amenities.append(amenity)
        
-        print("found_amenities", found_amenities)
-        return list(dict.fromkeys(found_amenities))[:8]
+        print("found_amenities:", found_amenities)
+        return found_amenities[:8]
     except Exception as e:
         print(f"An error occurred while scraping amenities from url {url}: {e}")
         return []
-    
+
 def fetch_amenities_from_links(site_links):
     amenities_found = []
     for link_url, _ in site_links:
@@ -418,10 +491,11 @@ def fetch_amenities_from_links(site_links):
                 amenities_found.extend(amenities)
         except Exception as e:
             print(f"An error occurred while fetching amenities from link_url {link_url}: {e}")
-    return amenities_found[:8]    
+    return amenities_found[:8]
 
 def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, depth=1):
     amenities_found = set()
+    
     def scrape_links(link_url, current_depth):
         nonlocal amenities_found
         try:
@@ -458,7 +532,6 @@ def fetch_amenities_from_sub_links(site_links, max_sub_links=20, timeout=6, dept
         scrape_links(link_url, 1)
  
     return list(amenities_found)[:8]
-   
 
 
 
@@ -472,8 +545,18 @@ if st.session_state.logged_in:
     if st.button("Scrape Data"):
         if url:
             try:
+                # Initialize variables
+                ad_copy1, ad_copy2 = None, None
+                header_text = None
+                amenities_found = []
+                site_links = []
+                amenities_from_links = []
+                amenities_from_sub_links = []
             # Assuming these functions are defined elsewhere
-                ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
+                try:
+                    ad_copy1, ad_copy2 = scrape_first_proper_paragraph(url)
+                except:''
+        
                 header_text = extract_header_from_path(output_file) if output_file else None
         
                 amenities_found = scrape_amenities(url)
@@ -506,26 +589,23 @@ if st.session_state.logged_in:
                     if sub_links_processed >= 20:
                         break  # Break out of the loop after checking 20 sub-links
         
-                # sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x))
-                # st.write("Fetched Amenities:", sorted_amenities)
-        
-                sorted_amenities = sorted(unique_amenities, key=lambda x: amenities_to_check.index(x) if x in amenities_to_check else len(amenities_to_check))
-                # st.write("Fetched Amenities:", sorted_amenities)
+                amenity_order = list(amenities_to_check.keys())
+                sorted_amenities = sorted(unique_amenities, key=lambda x: amenity_order.index(x) if x in amenity_order else len(amenity_order))
 
 
                 property_name_variants = generate_variants(header_text) if header_text else []
 
-                filtered_negative_keywords  = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
+                final_negative_keyword  = scrape_similar_hotels("https://www.google.com", header_text) if header_text else []
                 
                 # Debug print to check the final filtered negative keywords
-                print("Final filtered Negative Keywords:", filtered_negative_keywords)
+                print("Final filtered Negative Keywords:", final_negative_keyword)
 
                 header_df = pd.DataFrame({'Header Text': [header_text] if header_text else []})
                 paragraph_df = pd.DataFrame({'Ad copy1': [ad_copy1], 'Ad copy2': [ad_copy2]})
                 site_links_df = pd.DataFrame(site_links, columns=['Link URL', 'Link Text'])
                 property_url_df = pd.DataFrame({'property_url': [url]})
                 property_name_variants_df = pd.DataFrame({'Variants of Property Name': property_name_variants})
-                negative_keywords_df = pd.DataFrame(filtered_negative_keywords, columns=['Negative Keywords'])
+                negative_keywords_df = pd.DataFrame(final_negative_keyword, columns=['Negative Keywords'])
                 amenities_df = pd.DataFrame({'Amenities': sorted_amenities})
                 Callouts = ["Book Direct", "Great Location", "Spacious Suites"]
 
