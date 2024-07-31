@@ -1,0 +1,26 @@
+{
+    "link_text_patterns": [
+      "Official Site", "Rooms & Suites", "Wedding", "Facilities & Activities", "Sports & Entertainment",
+      "Specials", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Poolside", "Pool area",
+      "Pool deck", "Pool bar", "Tours & Activities", "All Dining & Bar Facilities", "Activities", "Groups & Meetings",
+      "Dining", "Meetings & Events", "Contact Us", "CONTACT", "EXPERIENCE", "Photos", "Events", "Pool & sea", "Wellness & fitness",
+      "Water Park", "Salt Water Swimming Pool", "Accommodation", "Amenities", "Location", "Rooms", "Gallery",
+      "Pool bar", "Restaurants", "Discover", "Our Services", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie",
+      "Café", "Bistro", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area",
+      "Premises", "Establishment", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite",
+      "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites", "Offers","Our Resorts","Vacation Specials","Park Tickets","Meets us","Stay with us", "Find us","Instagram",
+      "Our Hotel","Location","Promotions"
+    ],
+    "relevant_meetings_words": ["Meetings & Events", "Groups & Meetings", "Meetings", "Events", "Wedding"],
+    "relevant_entertainment_words": ["Sports & Entertainment", "Live music", "Stand-up comedy", "Magic shows", "Art exhibitions", "Sports", "Entertainment"],
+    "relevant_facilities_activities_words": ["Facilities & Activities", "Activities", "Pool & sea", "Salt Water Swimming Pool", "Our Services", "swimming pool", "pool", "sea", "Water Park",  "Poolside", "Pool area", "Pool deck", "Pool bar", "Tours & Activities"],
+    "relevant_spa_wellness_words": ["Spa & Wellness", "Spa", "Wellness & fitness", "Discover"],
+    "relevant_photo_gallery_words": ["PhotoGallery", "Photo", "Gallery"],
+    "relevant_dining_words": ["All Dining & Bar Facilities", "Restaurant", "Food & Beverage Amenities", "Dining", "Gastronomy", "Eatery", "Pub", "Diner", "Trattoria", "Brasserie", "Café", "Bistro", "In Room dining", "Private Dining"],
+    "relevant_location_words": ["Location", "Locations", "Destination & Location", "Address", "Venue", "Spot", "Place", "Site", "Locale", "Area", "Premises", "Establishment"],
+    "relevant_rooms_words": ["Rooms", "Room", "Rooms & Suites", "Rooms and Suites", "Guest Rooms", "Suites", "Deluxe Rooms", "Executive Suites", "Presidential Suite", "Penthouse", "Family Suites", "Connecting Rooms", "Private Suites"],
+    "relevant_special_offer_words": ["special_offer", "offers", "offer", "Specials","Vacation Specials"],
+    "relevant_accommodation_words": ["Explore All Accommodations", "Accommodation", "stay"],
+    "relevant_specials_packages_words": ["Daily Specials", "Weekend Specials", "Holiday Specials", "Promotional Specials", "Family Packages", "Couples Packages", "Party Packages", "Event Packages", "Set Menus"]
+  }
+  

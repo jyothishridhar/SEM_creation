@@ -123,20 +123,18 @@ def generate_variants(property_name, max_variants=5):
     
     return variants
 
-
-
-
 # Define function to scrape the first proper paragraph
 def scrape_first_proper_paragraph(url, retries=3, wait_time=10):
     try:
         options = Options()
-        options.add_argument("--headless")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("start-maximized")
-        
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        options.add_argument('--no-sandbox')
+        options.add_argument('--window-size=1420,1080')
+        options.add_argument('--headless')
+        options.add_argument('--disable-gpu')
+        chrome_driver_path="C:\\Users\\Jyothi.S\\AppData\\Local\\chromedriver-win64\\chromedriver.exe"
+
+        service = Service(chrome_driver_path)
+        driver = webdriver.Chrome(service=service, options=options)
        
         for attempt in range(retries):
             try:
@@ -369,14 +367,17 @@ def scrape_similar_hotels(google_url, header_text):
     
     try:
         
-        options = webdriver.ChromeOptions()
+        options = Options()
         options.add_argument('--no-sandbox')
         options.add_argument('--window-size=1420,1080')
         options.add_argument('--headless')
         options.add_argument('--disable-gpu')
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        chrome_driver_path="C:\\Users\\Jyothi.S\\AppData\\Local\\chromedriver-win64\\chromedriver.exe"
+
+        service = Service(chrome_driver_path)
+        driver = webdriver.Chrome(service=service, options=options)
         driver.get(google_url)
-        time.sleep(6)
+        time.sleep(5)
  
         search_box = driver.find_element(By.XPATH, "//textarea[@id='APjFqb' and @name='q']")
         search_box.send_keys(header_text)
@@ -388,16 +389,16 @@ def scrape_similar_hotels(google_url, header_text):
         negative_keywords = []
         for result in search_results:
             negative_keywords.append(result.text)
-            
+           
          # Debug print to check the initial negative keywords
         print("Negative Keywords before filtering:", negative_keywords)    
-            
+           
         # # Remove 'hotel' and 'resort' from the keywords
         # filtered_negative_keywords  = [keyword.replace(' Hotel', '').replace('Resort', '').strip() for keyword in negative_keywords]
-        
-        # # Debug print to check the filtered negative keywords
+       
+        # Debug print to check the filtered negative keywords
         # print("Negative Keywords after filtering:", filtered_negative_keywords)
-        
+
         # Split the header text into individual words
         header_words = set(header_text.lower().split())
 
@@ -405,25 +406,32 @@ def scrape_similar_hotels(google_url, header_text):
         filtered_header_words = {word for word in header_words if word not in ['hotel', 'resort']}
 
         # Remove keywords containing words from filtered header words
-        filtered_negative_keywords  = [keyword for keyword in negative_keywords if not any(word in keyword.lower().split() for word in filtered_header_words)]
-        # Debug print to check the filtered negative keywords
-        print("Negative Keywords after filtering:", filtered_negative_keywords)
+        filtered_negative_keywords= [keyword for keyword in negative_keywords if not any(word in keyword.lower().split() for word in filtered_header_words)]
+        print("filtered_negative_keywords",filtered_negative_keywords)
+        final_negative_keywords = []
+        for keyword in filtered_negative_keywords:
+            # Use regex to remove 'hotel' and 'resort' in a case-insensitive manner
+            clean_keyword = re.sub(r'\b(hotel|resort)\b', '', keyword, flags=re.IGNORECASE).strip()
+            final_negative_keywords.append(clean_keyword)
 
+        print("final_negative_keywords:", final_negative_keywords)
         # Remove 'hotel' and 'resort' from the keywords
-        final_negative_keywords = [keyword.replace('Hotel', '').replace('Resort', '').strip() for keyword in filtered_negative_keywords]
-        
-        # Debug print to check the final negative keywords
-        print("Negative Keywords after removing header words:", final_negative_keywords)
-    
+        # final_negative_keywords  = [keyword.replace(' Hotel', '').replace('Resort', '').strip() for keyword in filtered_negative_keywords]
+       
+
+        # print("final_negative_keywords",final_negative_keywords)
+
+   
+ 
         # Close the browser
         driver.quit()
-
-        return final_negative_keywords 
-
+ 
+        # print("Negative Keywords:", negative_keywords)
+        return final_negative_keywords
+ 
     except Exception as e:
         print("An error occurred while scraping similar hotels:", e)
         return None
- 
    
 # Define the categorized amenities
 amenities_to_check = {
@@ -705,7 +713,7 @@ else:
     # Render login page or redirect to login if not logged in
     login_success = login()
     if login_success:
-        st.experimental_rerun()           
+        st.rerun()           
 
 
         
